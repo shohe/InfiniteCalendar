@@ -33,7 +33,7 @@ struct EventCellView: CellableView {
         var color: Color?
         
         
-        init(text: String, start: Date, end: Date?, isAllDay: Bool = false, editState: EditState? = nil, color: Color? = Color(red: 6.0/255.0, green: 170.0/255.0, blue: 299.0/255.0)) {
+        init(text: String, start: Date, end: Date?, isAllDay: Bool = false, editState: EditState? = nil, color: Color? = Color.google.defaultColor) {
             self.text = text
             self.startDate = start
             self.endDate = end
