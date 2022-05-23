@@ -40,6 +40,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>>:
     
     open func updateSettings(_ settings: ICViewSettings) {
         currentSettings = settings
+        provider.settings = settings
     }
     
     open func updateInitDate(_ initDate: Date) {
