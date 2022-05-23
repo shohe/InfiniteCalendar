@@ -11,7 +11,7 @@ InfiniteCalendar is infinite scrollable Calendar for iOS written in Swift.
 
 <img align="right" width="100%" height="auto" src="https://github.com/shohe/InfiniteCalendar/raw/media/Assets/animation-mock-iPhone-12Pro.gif"/>
 
-<p>UI/UX design inspired by <a href="https://apps.apple.com/jp/app/google-calendar-get-organized/id909319292?l=en">GoogleCalendar</a>. Implementation inspired by <a href="https://clutch.co/profile/exyte#review-731233?utm_medium=referral&utm_source=github.com&utm_campaign=phenomenal_to_clutch">JZCalendarWeekView</a>.</p>
+<p>UI/UX design inspired by <a href="https://apps.apple.com/jp/app/google-calendar-get-organized/id909319292?l=en">GoogleCalendar</a>. Implementation inspired by <a href="https://github.com/zjfjack/JZCalendarWeekView">JZCalendarWeekView</a>.</p>
 </br>
 
 ___
