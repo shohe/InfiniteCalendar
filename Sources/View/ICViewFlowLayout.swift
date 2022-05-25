@@ -765,7 +765,7 @@ extension ICViewFlowLayout {
             }
             guard unadjustedItems.count > 0 else { continue }
             
-            let availableRanges = getAvailableRanges(sectionRange: sectionMinX...sectionMinX + sectionWidth, adjustedRanges: adjustedRanges)
+            let availableRanges = getAvailableRanges(sectionRange: sectionMinX...sectionMinX + sectionWidth - itemMargin.right, adjustedRanges: adjustedRanges)
             let minItemDivisionWidth = (sectionWidth / CGFloat(largestOverlapCountGroup.count)).toDecimal1Value()
             var i = 0, j = 0
             while i < unadjustedItems.count && j < availableRanges.count {
@@ -775,11 +775,13 @@ extension ICViewFlowLayout {
                 let leftUnadjustedItemsCount = unadjustedItems.count - i
                 if leftUnadjustedItemsCount <= availableMaxItemsCount {
                     // All left unadjusted items can evenly divide the current available area
-                    setItemsAdjustedAttributes(fullWidth: availableWidth, items: Array(unadjustedItems[i..<unadjustedItems.count]), currentMinX: availableRange.lowerBound, sectionZ: &sectionZ, adjustedItems: &adjustedItems)
+                    // add itemMargin.right for keep size, because `setItemsAdjustedAttributes()` subtract itemMargin.right
+                    setItemsAdjustedAttributes(fullWidth: availableWidth+itemMargin.right, items: Array(unadjustedItems[i..<unadjustedItems.count]), currentMinX: availableRange.lowerBound, sectionZ: &sectionZ, adjustedItems: &adjustedItems)
                     break
                 } else {
                     // This current available interval cannot afford all left unadjusted items
-                    setItemsAdjustedAttributes(fullWidth: availableWidth, items: Array(unadjustedItems[i..<i+availableMaxItemsCount]), currentMinX: availableRange.lowerBound, sectionZ: &sectionZ, adjustedItems: &adjustedItems)
+                    // add itemMargin.right for keep size, because `setItemsAdjustedAttributes()` subtract itemMargin.right
+                    setItemsAdjustedAttributes(fullWidth: availableWidth+itemMargin.right, items: Array(unadjustedItems[i..<i+availableMaxItemsCount]), currentMinX: availableRange.lowerBound, sectionZ: &sectionZ, adjustedItems: &adjustedItems)
                     i += availableMaxItemsCount
                     j += 1
                 }
