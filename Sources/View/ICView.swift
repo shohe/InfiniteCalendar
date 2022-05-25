@@ -311,8 +311,8 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>>: ICBaseView<V
     }
     
     private func isOriginalMovingCell(_ cell: UICollectionViewCell) -> Bool {
-        if let info = currentEditingCellInfo, let cell = cell as? Cell, let vm = cell.viewModel {
-            return vm.id == info.viewModel.id
+        if let info = currentEditingCellInfo, let moveVM = info.viewModel, let cell = cell as? Cell, let vm = cell.viewModel {
+            return moveVM.id == vm.id
         } else {
             return false
         }
