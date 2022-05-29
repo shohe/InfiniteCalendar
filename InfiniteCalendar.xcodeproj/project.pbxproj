@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0936383F2841D9240076F650 /* CustomDateHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0936383E2841D9240076F650 /* CustomDateHeader.swift */; };
+		09363842284214280076F650 /* ICViewFlowLayoutDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09363840284213490076F650 /* ICViewFlowLayoutDelegate.swift */; };
 		099CB4E7283B809A00D96142 /* CollectionDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099CB4B3283B809A00D96142 /* CollectionDataSource.swift */; };
 		099CB4E8283B809A00D96142 /* ICDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099CB4B4283B809A00D96142 /* ICDataSource.swift */; };
 		099CB4E9283B809A00D96142 /* CollectionDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099CB4B5283B809A00D96142 /* CollectionDataProvider.swift */; };
@@ -77,6 +79,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0936383E2841D9240076F650 /* CustomDateHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDateHeader.swift; sourceTree = "<group>"; };
+		09363840284213490076F650 /* ICViewFlowLayoutDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICViewFlowLayoutDelegate.swift; sourceTree = "<group>"; };
 		099CB49D283B806A00D96142 /* InfiniteCalendar.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = InfiniteCalendar.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		099CB4B0283B809A00D96142 /* Package.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		099CB4B3283B809A00D96142 /* CollectionDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionDataSource.swift; sourceTree = "<group>"; };
@@ -144,6 +148,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0936383D2841D8E10076F650 /* CustomUI */ = {
+			isa = PBXGroup;
+			children = (
+				0936383E2841D9240076F650 /* CustomDateHeader.swift */,
+			);
+			path = CustomUI;
+			sourceTree = "<group>";
+		};
 		099CB493283B806A00D96142 = {
 			isa = PBXGroup;
 			children = (
@@ -216,12 +228,9 @@
 		099CB4C0283B809A00D96142 /* Component */ = {
 			isa = PBXGroup;
 			children = (
+				099CB4D0283B809A00D96142 /* ICComponent.swift */,
 				099CB4C1283B809A00D96142 /* ICComponentItem.swift */,
-				099CB4C2283B809A00D96142 /* ICDateHeader.swift */,
-				099CB4C3283B809A00D96142 /* ICTimeHeader.swift */,
-				099CB4C4283B809A00D96142 /* ICGridLine.swift */,
-				099CB4C5283B809A00D96142 /* ICTimeline.swift */,
-				099CB4C6283B809A00D96142 /* ICAllDayHeader.swift */,
+				09DB5DBB2843688C00F78715 /* DefaultComponents */,
 				099CB4C7283B809A00D96142 /* ParentComponent */,
 			);
 			path = Component;
@@ -242,6 +251,7 @@
 			children = (
 				099CB4CC283B809A00D96142 /* ICViewDelegate.swift */,
 				099CB4CD283B809A00D96142 /* ICBaseViewDelegate.swift */,
+				09363840284213490076F650 /* ICViewFlowLayoutDelegate.swift */,
 			);
 			path = Delegate;
 			sourceTree = "<group>";
@@ -250,7 +260,6 @@
 			isa = PBXGroup;
 			children = (
 				099CB4CF283B809A00D96142 /* CellableView.swift */,
-				099CB4D0283B809A00D96142 /* ICComponent.swift */,
 				099CB4D1283B809A00D96142 /* ReusableCell.swift */,
 				099CB4D2283B809A00D96142 /* Buildable.swift */,
 				099CB4D3283B809A00D96142 /* ViewHostableCell.swift */,
@@ -282,6 +291,7 @@
 		099CB576283B884900D96142 /* Demo */ = {
 			isa = PBXGroup;
 			children = (
+				0936383D2841D8E10076F650 /* CustomUI */,
 				099CB577283B884900D96142 /* DemoApp.swift */,
 				099CB58E283B8ADA00D96142 /* EventCell.swift */,
 				099CB593283B8AE500D96142 /* DetailView.swift */,
@@ -306,6 +316,18 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		09DB5DBB2843688C00F78715 /* DefaultComponents */ = {
+			isa = PBXGroup;
+			children = (
+				099CB4C3283B809A00D96142 /* ICTimeHeader.swift */,
+				099CB4C2283B809A00D96142 /* ICDateHeader.swift */,
+				099CB4C6283B809A00D96142 /* ICAllDayHeader.swift */,
+				099CB4C5283B809A00D96142 /* ICTimeline.swift */,
+				099CB4C4283B809A00D96142 /* ICGridLine.swift */,
+			);
+			path = DefaultComponents;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -422,6 +444,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				099CB4EC283B809A00D96142 /* ICViewHelper.swift in Sources */,
+				09363842284214280076F650 /* ICViewFlowLayoutDelegate.swift in Sources */,
 				099CB4FF283B809A00D96142 /* ReusableCell.swift in Sources */,
 				099CB4E9283B809A00D96142 /* CollectionDataProvider.swift in Sources */,
 				099CB4EB283B809A00D96142 /* ICViewSettings.swift in Sources */,
@@ -464,6 +487,7 @@
 				099CB590283B8ADA00D96142 /* EventCell.swift in Sources */,
 				099CB591283B8ADA00D96142 /* SampleData.swift in Sources */,
 				099CB594283B8AE500D96142 /* Settings.swift in Sources */,
+				0936383F2841D9240076F650 /* CustomDateHeader.swift in Sources */,
 				099CB595283B8AE500D96142 /* DetailView.swift in Sources */,
 				099CB578283B884900D96142 /* DemoApp.swift in Sources */,
 			);

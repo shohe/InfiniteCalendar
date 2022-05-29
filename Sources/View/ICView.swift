@@ -10,7 +10,7 @@ import SwiftUI
 
 
 /// This class is extended longTap action based on the ICBaseView
-open class ICView<View: CellableView, Cell: ViewHostingCell<View>>: ICBaseView<View, Cell>, UIGestureRecognizerDelegate {
+open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: ICBaseView<View, Cell, Settings>, UIGestureRecognizerDelegate {
     
     public typealias HightlightIndex = (IndexPath?, IndexPath?)
     
@@ -35,7 +35,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>>: ICBaseView<V
     private var currentAutoScrollDirection: ScrollDirection?
     private let autoScrollSpeedRange = (0.5...4.0) // by 0.01 sec
     
-    public weak var delegateForLongTap: ICViewDelegate<View,Cell>?
+    public weak var delegateForLongTap: ICViewDelegate<View,Cell,Settings>?
     
     public var longTapTypes: [LongTapType] = [LongTapType]()
     public var moveTimeMinInterval: Int = 15

@@ -5,9 +5,9 @@
 //  Created by Shohe Ohtani on 2022/03/29.
 //
 
-import Foundation
+import UIKit
 
-public protocol ReusableCell {
+public protocol ReusableCell: UICollectionReusableView {
     static var reuseIdentifier: String { get }
 }
 

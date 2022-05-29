@@ -18,14 +18,14 @@ extension ICDataSourceDelegate {
     func didSelectAllDayItem(date: Date, at indexPath: IndexPath) {}
 }
 
-open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>>:
-    CollectionDataSource<ICDataProvider<View, Cell>, Cell> {
+open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>:
+    CollectionDataSource<ICDataProvider<View, Cell, Settings>, Cell> {
     
     public var isAllHeaderExpended: Bool = false
     public var vibrateFeedback: UIImpactFeedbackGenerator?
     
     private var currentInitDate: Date!
-    private var currentSettings: ICViewSettings!
+    private var currentSettings: Settings!
     
     weak var delegate: ICDataSourceDelegate?
     
@@ -33,12 +33,12 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>>:
     private var hightlighted: ICView.HightlightIndex?
     
     
-    override init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell>) {
+    override init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
         super.init(parentVC: parentVC, collectionView: collectionView, provider: provider)
         currentSettings = provider.settings
     }
     
-    open func updateSettings(_ settings: ICViewSettings) {
+    open func updateSettings(_ settings: Settings) {
         currentSettings = settings
         provider.settings = settings
     }
@@ -69,7 +69,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>>:
     
     open func updateHighlight(item: Int?, isOn: Bool) {
         guard let i = item else { return }
-        if let timeHeader = self.collectionView.supplementaryView(forElementKind: ICViewSettings.TimeHeader.className, at: IndexPath(item: i, section: 0)) as? ICViewSettings.TimeHeader {
+        if let timeHeader = self.collectionView.supplementaryView(forElementKind: Settings.TimeHeader.className, at: IndexPath(item: i, section: 0)) as? Settings.TimeHeader {
             if var item = timeHeader.item {
                 item.isHighlighted = isOn
                 timeHeader.configure(parentVC: parentVC, item: item)
@@ -96,55 +96,55 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>>:
     // MARK: - UICollectionViewDataSource
     open override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         var view = UICollectionReusableView()
-        
         switch kind {
-        case ICViewSettings.TimeHeader.className:
-            if let timeHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? ICViewSettings.TimeHeader {
+        case Settings.TimeHeader.className:
+            if let timeHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? Settings.TimeHeader {
                 let date = provider.layout.date(forTimeHeaderAt: indexPath)
                 let range = (provider.settings.timeRange.startTime...provider.settings.timeRange.endTime)
                 let item = ICTimeHeaderItem(date: date, isDisplayed: range.contains(date.hour))
                 timeHeader.configure(parentVC: parentVC, item: item)
                 view = timeHeader
             }
-        case ICViewSettings.DateHeader.className:
-            if let dateHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? ICViewSettings.DateHeader {
+        case Settings.DateHeader.className:
+            if let dateHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? Settings.DateHeader {
                 let date = provider.layout.date(forTimeHeaderAt: indexPath)
                 let item = ICDateHeaderItem(date: date)
                 dateHeader.configure(parentVC: parentVC, item: item)
                 view = dateHeader
             }
-        case ICViewSettings.DateHeaderCorner.className:
-            if let cornerHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? ICViewSettings.DateHeaderCorner {
-                cornerHeader.configure(parentVC: parentVC, item: ICContentBackgroundItem())
+        case Settings.DateCorner.className:
+            if let cornerHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? Settings.DateCorner {
+                let item = ICContentBackgroundItem()
+                cornerHeader.configure(parentVC: parentVC, item: item)
                 view = cornerHeader
             }
-        case ICViewSettings.AllDayHeaderCorner.className:
-            if let allDayCorner = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? ICViewSettings.AllDayHeaderCorner {
+        case Settings.AllDayCorner.className:
+            if let allDayCorner = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? Settings.AllDayCorner {
                 let maxItemCount = provider.layout.dates(forInCurrentPage: collectionView, isScrolling: true)
                     .compactMap { provider.allDayEvents[$0]?.count }
                     .max() ?? 0
                 let item = ICAllDayCornerItem(itemCount: maxItemCount, isExpended: isAllHeaderExpended) { isExpanded in
                     self.isAllHeaderExpended = isExpanded
-                    self.delegate?.didUpdateAllDayHeader(view: allDayCorner, kind: ICAllDayCorner.className, isExpanded: self.isAllHeaderExpended)
+                    self.delegate?.didUpdateAllDayHeader(view: allDayCorner, kind: Settings.AllDayCorner.className, isExpanded: self.isAllHeaderExpended)
                 }
                 allDayCorner.configure(parentVC: parentVC, item: item)
                 view = allDayCorner
             }
-        case ICViewSettings.AllDayHeader.className:
-            if let allDayHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? ICViewSettings.AllDayHeader {
+        case Settings.AllDayHeader.className:
+            if let allDayHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? Settings.AllDayHeader {
                 let date = provider.layout.date(forDateHeaderAt: indexPath)
                 let vms = provider.allDayEvents[date] ?? []
                 let views = allDayHeaderViews(allDayVM: vms)
                 let item = ICAllDayHeaderItem(views: views, isExpended: isAllHeaderExpended) { isExpanded in
                     self.isAllHeaderExpended = isExpanded
-                    self.delegate?.didUpdateAllDayHeader(view: allDayHeader, kind: ICViewSettings.AllDayHeader.className, isExpanded: self.isAllHeaderExpended)
+                    self.delegate?.didUpdateAllDayHeader(view: allDayHeader, kind: Settings.AllDayHeader.className, isExpanded: self.isAllHeaderExpended)
                 }
                 allDayHeader.configure(parentVC: parentVC, item: item)
                 allDayHeader.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapAllDayItem(gesture:))))
                 view = allDayHeader
             }
-        case ICViewSettings.Timeline.className:
-            if let timeline = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? ICViewSettings.Timeline {
+        case Settings.Timeline.className:
+            if let timeline = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? Settings.Timeline {
                 let date = provider.layout.date(forTimeHeaderAt: indexPath)
                 let item = ICTimelineItem(isDisplayed: date.isToday)
                 timeline.configure(parentVC: parentVC, item: item)

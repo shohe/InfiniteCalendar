@@ -7,17 +7,7 @@
 
 import UIKit
 
-public protocol ICViewFlowLayoutDelegate: AnyObject {
-    /// Get the date for givin section
-    func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout, dayForSection section: Int) -> Date
-    /// Get the start time for given item intexPath
-    func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout, startTimeForItemAtIndexPath indexPath: IndexPath) -> Date
-    /// Get the end time for given item intexPath
-    func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout, endTimeForItemAtIndexPath indexPath: IndexPath) -> Date
-}
-
-
-open class ICViewFlowLayout: UICollectionViewFlowLayout {
+open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     // UI params
     var hourHeight: CGFloat!
@@ -106,15 +96,15 @@ open class ICViewFlowLayout: UICollectionViewFlowLayout {
     }
     
     
-    public weak var delegate: ICViewFlowLayoutDelegate?
+    public var delegate: ICViewFlowLayoutDelegate<Settings>!
     private var currentInitDate: Date! // This `currentInitDate` is should be leftest date for current collectionView
-    private var currentSettings: ICViewSettings!
+    private var currentSettings: Settings!
     private var minuteTimer: Timer?
     
     
-    init(settings: ICViewSettings) {
+    init(settings: Settings, delegate: ICViewFlowLayoutDelegate<Settings>) {
         super.init()
-        
+        self.delegate = delegate
         currentSettings = settings
         currentInitDate = settings.initDate
         setupUIParams()
@@ -185,22 +175,22 @@ open class ICViewFlowLayout: UICollectionViewFlowLayout {
     
     open func zIndexForElementKind(_ kind: String) -> Int {
         switch kind {
-        case ICViewSettings.DateHeaderCorner.className,
-            ICViewSettings.AllDayHeaderCorner.className:
+        case Settings.DateCorner.className,
+            Settings.AllDayCorner.className:
             return minOverlayZ + 10
-        case ICViewSettings.AllDayHeader.className:
+        case Settings.AllDayHeader.className:
             return minOverlayZ + 9
-        case ICViewSettings.AllDayHeaderBackground.className:
+        case Settings.AllDayHeaderBackground.className:
             return minOverlayZ + 8
-        case ICViewSettings.DateHeader.className:
+        case Settings.DateHeader.className:
             return minOverlayZ + 7
-        case ICViewSettings.DateHeaderBackground.className:
+        case Settings.DateHeaderBackground.className:
             return minOverlayZ + 6
-        case ICViewSettings.TimeHeader.className:
+        case Settings.TimeHeader.className:
             return minOverlayZ + 5
-        case ICViewSettings.TimeHeaderBackground.className:
+        case Settings.TimeHeaderBackground.className:
             return minOverlayZ + 4
-        case ICViewSettings.Timeline.className:
+        case Settings.Timeline.className:
             return minOverlayZ + 3
         case ICViewKinds.Decoration.horizontalGridline:
             return minBackgroundZ + 2
@@ -241,7 +231,7 @@ open class ICViewFlowLayout: UICollectionViewFlowLayout {
         }
     }
     
-    public func updateSettings(_ settings: ICViewSettings) {
+    public func updateSettings(_ settings: Settings) {
         currentSettings = settings
     }
     
@@ -399,8 +389,8 @@ extension ICViewFlowLayout {
     }
     
     open func date(forDateHeaderAt indexPath: IndexPath) -> Date {
-        let day = delegate?.collectionView(collectionView!, layout: self, dayForSection: indexPath.section)
-        return day!.startOfDay
+        let day = delegate.collectionView(collectionView!, layout: self, dayForSection: indexPath.section)
+        return day.startOfDay
     }
     
     /// Get date excluding time from point.X for **gesture point in collectionView only** rather than collectionView contentOffset
@@ -557,7 +547,7 @@ extension ICViewFlowLayout {
         }
     }
     
-    @objc private func minuteTick() {
+    private func minuteTick() {
         cachedCurrentTimeComponents.removeAll()
         invalidateLayout()
     }
@@ -572,21 +562,21 @@ extension ICViewFlowLayout {
     func layoutTimeHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let indexPaths: [IndexPath] = indexPathsForTimeHeader()
         indexPaths.forEach { indexPath in
-            (attributes, timeHeaderAttributes) = layoutAttributesForSupplementaryView(at: indexPath, ofKind: ICViewSettings.TimeHeader.className, withItemCache: timeHeaderAttributes)
+            (attributes, timeHeaderAttributes) = layoutAttributesForSupplementaryView(at: indexPath, ofKind: Settings.TimeHeader.className, withItemCache: timeHeaderAttributes)
             let date = date(forTimeHeaderAt: indexPath)
             attributes.frame = rect(collectionView, forTimeHeaderAt: date, isLast: (indexPaths.last == indexPath))
-            attributes.zIndex = zIndexForElementKind(ICViewSettings.TimeHeader.className)
+            attributes.zIndex = zIndexForElementKind(Settings.TimeHeader.className)
         }
         
         // background
-        (attributes, timeHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: ICViewSettings.TimeHeaderBackground.className, withItemCache: timeHeaderBackgroundAttributes)
+        (attributes, timeHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.TimeHeaderBackground.className, withItemCache: timeHeaderBackgroundAttributes)
         attributes.frame = CGRect(
             x: fmax(collectionView.contentOffset.x, 0),
             y: collectionView.contentOffset.y,
             width: timeHeaderWidth,
             height: collectionView.frame.height + (safeAreaInsets?.top ?? 0) + (safeAreaInsets?.bottom ?? 0)
         )
-        attributes.zIndex = zIndexForElementKind(ICViewSettings.TimeHeaderBackground.className)
+        attributes.zIndex = zIndexForElementKind(Settings.TimeHeaderBackground.className)
     }
     
     /**
@@ -604,21 +594,21 @@ extension ICViewFlowLayout {
         
         sectionIndexes.enumerate(_:) { (section, _) in
             let sectionMinX = calendarMinX + sectionWidth * CGFloat(section)
-            (attributes, dateHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: ICViewSettings.DateHeader.className, withItemCache: dateHeaderAttributes)
+            (attributes, dateHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.DateHeader.className, withItemCache: dateHeaderAttributes)
             attributes.frame = CGRect(
                 x: sectionMinX,
                 y: dateHeaderMinY,
                 width: sectionWidth,
                 height: dateHeaderHeight
             )
-            attributes.zIndex = zIndexForElementKind(ICViewSettings.DateHeader.className)
+            attributes.zIndex = zIndexForElementKind(Settings.DateHeader.className)
             
             layoutVerticalGridLineAttributes(section: section, sectionX: sectionMinX, calendarGridMinY: collectionView.contentOffset.y, sectionHeight: collectionView.contentSize.height, attributes: &attributes)
             layoutItemsAttributes(section: section, sectionX: sectionMinX, calendarStartY: calendarGridMinY)
         }
         
         // background
-        (attributes, dateHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: ICViewSettings.DateHeaderBackground.className, withItemCache: dateHeaderBackgroundAttributes)
+        (attributes, dateHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.DateHeaderBackground.className, withItemCache: dateHeaderBackgroundAttributes)
         let attributesHeight = dateHeaderHeight + (collectionView.contentOffset.y < 0 ? abs(collectionView.contentOffset.y) : 0)
         attributes.frame = CGRect(
             x: collectionView.contentOffset.x,
@@ -626,7 +616,7 @@ extension ICViewFlowLayout {
             width: collectionViewContentSize.width,
             height: isStickeyDateHeader ? dateHeaderHeight : attributesHeight
         )
-        attributes.zIndex = zIndexForElementKind(ICViewSettings.DateHeaderBackground.className)
+        attributes.zIndex = zIndexForElementKind(Settings.DateHeaderBackground.className)
     }
     
     func layoutCurrentTimelineAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
@@ -638,16 +628,16 @@ extension ICViewFlowLayout {
             let timeY = calendarContentMinY + (CGFloat(currentTimeComponents.hour!).toDecimal1Value() * hourHeight + CGFloat(currentTimeComponents.minute!) * minuteHeight)
             let calendarGridMinY = timeY - (defaultGridThickness / 2.0).toDecimal1Value() - defaultCurrentTimelineHeight/2
             
-            (attributes, currentTimelineAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: ICViewSettings.Timeline.className, withItemCache: currentTimelineAttributes)
+            (attributes, currentTimelineAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.Timeline.className, withItemCache: currentTimelineAttributes)
             attributes.frame = CGRect(x: sectionMinX, y: calendarGridMinY, width: sectionWidth, height: defaultCurrentTimelineHeight)
-            attributes.zIndex = zIndexForElementKind(ICViewSettings.Timeline.className)
+            attributes.zIndex = zIndexForElementKind(Settings.Timeline.className)
         }
     }
     
     func layoutCornerHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
-        (attributes, cornerHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: ICViewSettings.DateHeaderCorner.className, withItemCache: cornerHeaderAttributes)
+        (attributes, cornerHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.DateCorner.className, withItemCache: cornerHeaderAttributes)
         attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: dateHeaderHeight))
-        attributes.zIndex = zIndexForElementKind(ICViewSettings.DateHeaderCorner.className)
+        attributes.zIndex = zIndexForElementKind(Settings.DateCorner.className)
     }
     
     func layoutAllDayHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
@@ -656,35 +646,35 @@ extension ICViewFlowLayout {
         sectionIndexes.enumerate(_:) { (section, _) in
             let sectionMinX = calendarContentMinX + sectionWidth * CGFloat(section)
             
-            (attributes, allDayHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: ICViewSettings.AllDayHeader.className, withItemCache: allDayHeaderAttributes)
+            (attributes, allDayHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.AllDayHeader.className, withItemCache: allDayHeaderAttributes)
             attributes.frame = CGRect(
                 x: sectionMinX,
                 y: collectionView.contentOffset.y + dateHeaderHeight,
                 width: sectionWidth,
                 height: allDayHeaderHeight
             )
-            attributes.zIndex = zIndexForElementKind(ICViewSettings.AllDayHeader.className)
+            attributes.zIndex = zIndexForElementKind(Settings.AllDayHeader.className)
         }
         
         // background
-        (attributes, allDayHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: ICViewSettings.AllDayHeaderBackground.className, withItemCache: allDayHeaderBackgroundAttributes)
+        (attributes, allDayHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayHeaderBackground.className, withItemCache: allDayHeaderBackgroundAttributes)
         attributes.frame = CGRect(
             x: collectionView.contentOffset.x,
             y: collectionView.contentOffset.y + dateHeaderHeight,
             width: collectionViewContentSize.width,
             height: allDayHeaderHeight
         )
-        attributes.zIndex = zIndexForElementKind(ICViewSettings.AllDayHeaderBackground.className)
+        attributes.zIndex = zIndexForElementKind(Settings.AllDayHeaderBackground.className)
         
         // corner
-        (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: ICViewSettings.AllDayHeaderCorner.className, withItemCache: allDayCornerAttributes)
+        (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
         attributes.frame = CGRect(
             x: collectionView.contentOffset.x,
             y: collectionView.contentOffset.y + dateHeaderHeight,
             width: timeHeaderWidth,
             height: allDayHeaderHeight
         )
-        attributes.zIndex = zIndexForElementKind(ICViewSettings.AllDayHeaderCorner.className)
+        attributes.zIndex = zIndexForElementKind(Settings.AllDayCorner.className)
     }
     
     func layoutAttributesForCell(at indexPath: IndexPath, withItemCache itemCache: AttDic) -> (UICollectionViewLayoutAttributes, AttDic) {
@@ -957,7 +947,7 @@ extension ICViewFlowLayout {
             return components
         }
         
-        guard let day = delegate?.collectionView(cv, layout: self, dayForSection: section) else { fatalError() }
+        let day = delegate.collectionView(cv, layout: self, dayForSection: section)
         let startOfDay = day.startOfDay
         let dayDateComponents = Calendar.current.dateComponents([.year, .month, .day], from: startOfDay)
         cachedDayDateComponents[section] = dayDateComponents
@@ -968,12 +958,9 @@ extension ICViewFlowLayout {
         if cachedStartTimeDateComponents[indexPath] != nil {
             return cachedStartTimeDateComponents[indexPath]!
         } else {
-            if let date = delegate?.collectionView(collectionView!, layout: self, startTimeForItemAtIndexPath: indexPath) {
-                cachedStartTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
-                return cachedStartTimeDateComponents[indexPath]!
-            } else {
-                fatalError()
-            }
+            let date = delegate.collectionView(collectionView!, layout: self, startTimeForItemAtIndexPath: indexPath)
+            cachedStartTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
+            return cachedStartTimeDateComponents[indexPath]!
         }
     }
     
@@ -981,12 +968,9 @@ extension ICViewFlowLayout {
         if cachedEndTimeDateComponents[indexPath] != nil {
             return cachedEndTimeDateComponents[indexPath]!
         } else {
-            if let date = delegate?.collectionView(collectionView!, layout: self, endTimeForItemAtIndexPath: indexPath) {
-                cachedEndTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
-                return cachedEndTimeDateComponents[indexPath]!
-            } else {
-                fatalError()
-            }
+            let date = delegate.collectionView(collectionView!, layout: self, endTimeForItemAtIndexPath: indexPath)
+            cachedEndTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
+            return cachedEndTimeDateComponents[indexPath]!
         }
     }
     

@@ -12,12 +12,13 @@ import SwiftUI
 public protocol ICBaseViewDelegateProvider {
     associatedtype View: CellableView
     associatedtype Cell: ViewHostingCell<View>
+    associatedtype Settings: ICSettings
     
     func didUpdateCurrentDate(_ date: Date)
     func didSelectItem(_ item: View.VM)
 }
 
-open class ICBaseViewDelegate<View: CellableView, Cell: ViewHostingCell<View>>: NSObject, ICBaseViewDelegateProvider {
+open class ICBaseViewDelegate<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: NSObject, ICBaseViewDelegateProvider {
     private let updateInitDate: (Date) -> Void
     private let selectItem: (View.VM) -> Void
     

@@ -24,14 +24,14 @@ struct ContentView: View {
     @State var didTapToday: Bool = false
     @State var selectedItem: EventCellView.VM?
     
-    @ObservedObject var settings: Settings = Settings(numOfDays: 3, setDate: Date())
+    @ObservedObject var settings: CustomSettings = CustomSettings(numOfDays: 3, setDate: Date())
     
     
     var body: some View {
         VStack(spacing: 0.0) {
             calendarHeader(height: 42.0)
             
-            InfiniteCalendar<EventCellView, EventCell, Settings>(events: $events, settings: settings, didTapToday: $didTapToday)
+            InfiniteCalendar<EventCellView, EventCell, CustomSettings>(events: $events, settings: settings, didTapToday: $didTapToday)
                 .onCurrentDateChanged { date in
                     currentDate = date
                 }

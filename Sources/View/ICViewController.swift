@@ -7,9 +7,9 @@
 
 import UIKit
 
-public class ICViewController<View: CellableView, Cell: ViewHostingCell<View>>: UIViewController {
+public class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIViewController {
     
-    var calendarView: ICView<View,Cell>!
+    var calendarView: ICView<View,Cell,Settings>!
     var currentNumOfDays: Int = 0
     
     public override func viewDidLoad() {
@@ -20,7 +20,7 @@ public class ICViewController<View: CellableView, Cell: ViewHostingCell<View>>: 
         // TODO: Support device orientation change
     }
     
-    open func setupCalendarView(events: [View.VM], settings: ICViewSettings) {
+    open func setupCalendarView(events: [View.VM], settings: Settings) {
         calendarView = ICView(parentViewController: self)
         calendarView.setupCalendar(events: events, settings: settings)
         currentNumOfDays = settings.numOfDays
@@ -36,12 +36,12 @@ public class ICViewController<View: CellableView, Cell: ViewHostingCell<View>>: 
         }
     }
     
-    func setDelegate(_ delegate: ICViewDelegate<View,Cell>) {
+    func setDelegate(_ delegate: ICViewDelegate<View,Cell,Settings>) {
         calendarView.delegate = delegate /// base delegate
         calendarView.delegateForLongTap = delegate
     }
     
-    func updateCalendar(events: [View.VM], settings: ICViewSettings, didTapToday: Bool) {
+    func updateCalendar(events: [View.VM], settings: Settings, didTapToday: Bool) {
         let isUpdateNumOfDays: Bool = (currentNumOfDays != settings.numOfDays)
         
         calendarView.updateEvents(events)

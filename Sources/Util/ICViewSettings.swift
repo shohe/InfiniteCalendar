@@ -8,16 +8,28 @@
 import UIKit
 import SwiftUI
 
-
-public protocol ICSettings: AnyObject {
-    associatedtype TimeHeader
-    associatedtype TimeHeaderBackground
-    associatedtype DateHeader
-    associatedtype DateHeaderBackground
-    associatedtype DateHeaderCorner
-    associatedtype AllDayHeader
-    associatedtype AllDayHeaderBackground
-    associatedtype AllDayHeaderCorner
+public protocol ICSettings: ObservableObject {
+    // ViewHostableSupplementaryCells
+    associatedtype TimeHeaderView: ICTimeHeaderView                 = ICDefaultComponent.D_TimeHeaderView
+    associatedtype TimeHeader: ICTimeHeader<TimeHeaderView>         = ICDefaultComponent.TimeHeader
+    associatedtype DateHeaderView: ICDateHeaderView                 = ICDefaultComponent.D_DateHeaderView
+    associatedtype DateHeader: ICDateHeader<DateHeaderView>         = ICDefaultComponent.DateHeader
+    associatedtype DateCornerView: ICDateCornerView                 = ICDefaultComponent.D_DateCornerView
+    associatedtype DateCorner: ICDateCorner<DateCornerView>         = ICDefaultComponent.DateCorner
+    associatedtype AllDayHeaderView: ICAllDayHeaderView             = ICDefaultComponent.D_AllDayHeaderView
+    associatedtype AllDayHeader: ICAllDayHeader<AllDayHeaderView>   = ICDefaultComponent.AllDayHeader
+    associatedtype AllDayCornerView: ICAllDayCornerView             = ICDefaultComponent.D_AllDayCornerView
+    associatedtype AllDayCorner: ICAllDayCorner<AllDayCornerView>   = ICDefaultComponent.AllDayCorner
+    associatedtype TimelineView: ICTimelineView                     = ICDefaultComponent.D_TimelineView
+    associatedtype Timeline: ICTimeline<TimelineView>               = ICDefaultComponent.Timeline
+    
+    // ViewHostableDecorationCells
+    associatedtype TimeHeaderBackgroundView: ICTimeHeaderBackgroundView                         = ICDefaultComponent.D_TimeHeaderBackgroundView
+    associatedtype TimeHeaderBackground: ICTimeHeaderBackground<TimeHeaderBackgroundView>       = ICDefaultComponent.TimeHeaderBackground
+    associatedtype DateHeaderBackgroundView: ICDateHeaderBackgroundView                         = ICDefaultComponent.D_DateHeaderBackgroundView
+    associatedtype DateHeaderBackground: ICDateHeaderBackground<DateHeaderBackgroundView>       = ICDefaultComponent.DateHeaderBackground
+    associatedtype AllDayHeaderBackgroundView: ICAllDayHeaderBackgroundView                     = ICDefaultComponent.D_AllDayHeaderBackgroundView
+    associatedtype AllDayHeaderBackground: ICAllDayHeaderBackground<AllDayHeaderBackgroundView> = ICDefaultComponent.AllDayHeaderBackground
     
     
     var numOfDays: Int { get set }
@@ -25,6 +37,7 @@ public protocol ICSettings: AnyObject {
     var scrollType: ScrollType { get set }
     var moveTimeMinInterval: Int { get set }
     var timeRange: (startTime: Int, endTime: Int) { get set }
+    var withVibrateFeedback: Bool { get set }
     
     /* TODO: for future
      var viewType: ViewType
@@ -32,46 +45,20 @@ public protocol ICSettings: AnyObject {
      var hourGridDivision: JZHourGridDivision
      var scrollableRange: (startDate: Date?, endDate: Date?)
     */
+    
+    init()
 }
 
 
 // * If want to use custom components, create subclass and define new class to each typealias. *
 // DON'T ADD new property to subclass, it wont be used.
-open class ICViewSettings: ICSettings, ObservableObject {
-    public typealias TimeHeader = ICTHeader
-    public typealias TimeHeaderBackground = ICTHeaderBackground
-    public typealias DateHeader = ICDHeader
-    public typealias DateHeaderBackground = ICDHeaderBackground
-    public typealias DateHeaderCorner = ICDCorner
-    public typealias AllDayHeader = ICAllDayHeader
-    public typealias AllDayHeaderBackground = ICAllDayHeaderBackground
-    public typealias AllDayHeaderCorner = ICAllDayCorner
-    public typealias Timeline = ICTimeline
-    
-    
-    @Published public var numOfDays: Int
-    @Published public var initDate: Date
-    @Published public var scrollType: ScrollType
-    @Published public var moveTimeMinInterval: Int
-    @Published public var timeRange: (startTime: Int, endTime: Int)
-    
-    // option
+open class ICViewSettings: ICSettings {
+    @Published public var numOfDays: Int = 1
+    @Published public var initDate: Date = Date()
+    @Published public var scrollType: ScrollType = .pageScroll
+    @Published public var moveTimeMinInterval: Int = 15
+    @Published public var timeRange: (startTime: Int, endTime: Int) = (1, 23)
     @Published public var withVibrateFeedback: Bool = true
     
-    
-    public init(
-        numOfDays: Int = 1,
-        initDate: Date = Date(),
-        scrollType: ScrollType = .pageScroll,
-        moveTimeMinInterval: Int = 15,
-        timeRange: (startTime: Int, endTime: Int) = (1, 23),
-        withVibration: Bool = true
-    ) {
-        self.numOfDays = numOfDays
-        self.initDate = initDate
-        self.scrollType = scrollType
-        self.moveTimeMinInterval = moveTimeMinInterval
-        self.timeRange = timeRange
-        self.withVibrateFeedback = withVibration
-    }
+    required public init() { }
 }

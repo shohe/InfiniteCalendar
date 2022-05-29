@@ -9,19 +9,19 @@ import UIKit
 import SwiftUI
 
 
-open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>>: UIView, UICollectionViewDelegate {
+open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIView, UICollectionViewDelegate, ICViewFlowLayoutDelegateProvider {
     
     var collectionView: ICCollectionView!
     var parentViewController: UIViewController!
-    var layout: ICViewFlowLayout!
-    var dataSource: ICDataSource<View, Cell>?
+    var layout: ICViewFlowLayout<Settings>!
+    var dataSource: ICDataSource<View, Cell, Settings>?
     var initDate: Date = Date() {
         didSet {
             layout.updateInitDate(initDate)
             dataSource?.updateInitDate(initDate)
         }
     }
-    var settings: ICViewSettings = ICViewSettings() {
+    var settings: Settings = Settings() {
         didSet {
             layout.updateSettings(settings)
             dataSource?.updateSettings(settings)
@@ -38,7 +38,10 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>>: UIView, 
     private var currentDateWorkItem: DispatchWorkItem?
     private var allDayHeaderWorkItem: DispatchWorkItem?
     
-    public weak var delegate: ICBaseViewDelegate<View,Cell>?
+    public weak var delegate: ICBaseViewDelegate<View,Cell,Settings>?
+    private var delegateForLayout: ICViewFlowLayoutDelegate<Settings> {
+        return ICViewFlowLayoutDelegate(self)
+    }
     
     var contentViewWidth: CGFloat {
         return frame.width - layout.timeHeaderWidth - layout.contentsMargin.left - layout.contentsMargin.right
@@ -113,8 +116,8 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>>: UIView, 
     open func setup(with parentVC: UIViewController) {
         parentViewController = parentVC
         
-        layout = ICViewFlowLayout(settings: settings)
-        layout.delegate = self
+        layout = ICViewFlowLayout(settings: settings, delegate: delegateForLayout)
+        //layout.delegate = delegateForLayout
         
         collectionView = ICCollectionView(frame: bounds, collectionViewLayout: layout)
         collectionView.delegate = self
@@ -215,12 +218,12 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>>: UIView, 
     /// - Parameters:
     ///     - numOfDays: Number of days in a page
     ///     - settings: Default settings
-    public func setupCalendar(events: [View.VM], settings: ICViewSettings) {
+    public func setupCalendar(events: [View.VM], settings: Settings) {
         setupEvents(events)
         self.settings = settings
         initDate = initDateForCollectionView(settings.initDate)
         
-        let provider = ICDataProvider<View, Cell>(
+        let provider = ICDataProvider<View, Cell, Settings>(
             layout: layout,
             allDayEvents: allDayEvents,
             events: self.events,
@@ -252,7 +255,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>>: UIView, 
         }
     }
     
-    public func updateSettings(_ settings: ICViewSettings) {
+    public func updateSettings(_ settings: Settings) {
         self.settings = settings
     }
     
@@ -273,19 +276,19 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>>: UIView, 
     public func registerViewClasses() {
         // supplementary
         collectionView.registerSupplementaryViews([
-            ICViewSettings.TimeHeader.self,
-            ICViewSettings.DateHeader.self,
-            ICViewSettings.DateHeaderCorner.self,
-            ICViewSettings.AllDayHeader.self,
-            ICViewSettings.AllDayHeaderCorner.self,
-            ICViewSettings.Timeline.self,
+            Settings.TimeHeader.self,
+            Settings.DateHeader.self,
+            Settings.DateCorner.self,
+            Settings.AllDayHeader.self,
+            Settings.AllDayCorner.self,
+            Settings.Timeline.self,
         ])
         
         // decoration
         layout.registerDecorationViews([
-            ICViewSettings.DateHeaderBackground.self,
-            ICViewSettings.TimeHeaderBackground.self,
-            ICViewSettings.AllDayHeaderBackground.self
+            Settings.DateHeaderBackground.self,
+            Settings.TimeHeaderBackground.self,
+            Settings.AllDayHeaderBackground.self
         ])
         layout.register(ICGridLine.self, forDecorationViewOfKind: ICViewKinds.Decoration.verticalGridline)
         layout.register(ICGridLine.self, forDecorationViewOfKind: ICViewKinds.Decoration.horizontalGridline)
@@ -378,6 +381,34 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>>: UIView, 
     
     public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         // If needed implement
+    }
+    
+    
+    // MARK: - ICViewFlowLayoutDelegate
+    public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout<Settings>, dayForSection section: Int) -> Date {
+        return getDateForSection(section)
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout<Settings>, startTimeForItemAtIndexPath indexPath: IndexPath) -> Date {
+        let date = layout.date(forDateHeaderAt: indexPath)
+        
+        if let events = events[date] {
+            return events[indexPath.item].intraStartDate
+        } else {
+            print("Connot get events at \(date)")
+            return Date()
+        }
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout<Settings>, endTimeForItemAtIndexPath indexPath: IndexPath) -> Date {
+        let date = layout.date(forDateHeaderAt: indexPath)
+        
+        if let events = events[date] {
+            return events[indexPath.item].intraEndDate
+        } else {
+            print("Connot get events at \(date)")
+            return Date()
+        }
     }
 }
 
@@ -553,37 +584,6 @@ extension ICBaseView {
         return collectionView.contentOffset.y + difference + collectionView.bounds.height > collectionView.contentSize.height
     }
 }
-
-
-// MARK: - ICViewFlowLayoutDelegate
-extension ICBaseView: ICViewFlowLayoutDelegate {
-    public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout, dayForSection section: Int) -> Date {
-        return getDateForSection(section)
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout, startTimeForItemAtIndexPath indexPath: IndexPath) -> Date {
-        let date = layout.date(forDateHeaderAt: indexPath)
-        
-        if let events = events[date] {
-            return events[indexPath.item].intraStartDate
-        } else {
-            print("Connot get events at \(date)")
-            return Date()
-        }
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout, endTimeForItemAtIndexPath indexPath: IndexPath) -> Date {
-        let date = layout.date(forDateHeaderAt: indexPath)
-        
-        if let events = events[date] {
-            return events[indexPath.item].intraEndDate
-        } else {
-            print("Connot get events at \(date)")
-            return Date()
-        }
-    }
-}
-
 
 // MARK: - ICDataSourceDelegate
 extension ICBaseView: ICDataSourceDelegate {

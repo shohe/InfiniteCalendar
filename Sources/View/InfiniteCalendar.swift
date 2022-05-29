@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICViewSettings>: UIViewControllerRepresentable {
+public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIViewControllerRepresentable {
     @Binding var events: [View.VM]
     @ObservedObject var settings: Settings
     @Binding var didTapToday: Bool
@@ -27,14 +27,14 @@ public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, 
         self._didTapToday = didTapToday
     }
     
-    public func makeUIViewController(context: Context) -> ICViewController<View, Cell> {
-        let vc = ICViewController<View, Cell>()
+    public func makeUIViewController(context: Context) -> ICViewController<View, Cell, Settings> {
+        let vc = ICViewController<View, Cell, Settings>()
         vc.setupCalendarView(events: events, settings: settings)
         vc.setDelegate(context.coordinator.delegate)
         return vc
     }
 
-    public func updateUIViewController(_ icViewController: ICViewController<View, Cell>, context: Context) {
+    public func updateUIViewController(_ icViewController: ICViewController<View, Cell, Settings>, context: Context) {
         icViewController.updateCalendar(events: events, settings: settings, didTapToday: didTapToday)
         DispatchQueue.main.async {
             if didTapToday { didTapToday = false }
@@ -45,12 +45,12 @@ public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, 
     // MARK: - Coordinator
     public class Coordinator: NSObject {
         var parent: InfiniteCalendar
-        var delegate: ICViewDelegate<View, Cell>
+        var delegate: ICViewDelegate<View, Cell, Settings>
         var provider = LongTapViewDelegateProvider()
         
         init(_ parent: InfiniteCalendar) {
             self.parent = parent
-            self.delegate = ICViewDelegate<View, Cell>(provider)
+            self.delegate = ICViewDelegate<View, Cell, Settings>(provider)
         }
         
         // MARK: Delegate
@@ -66,15 +66,15 @@ public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, 
             var onEventCanceled: ((View.VM) -> Void)?
             
             
-            func icView(_ icView: ICView<View, Cell>, didAdd event: View.VM, startAt startDate: Date, endAt endDate: Date) {
+            func icView(_ icView: ICView<View, Cell, Settings>, didAdd event: View.VM, startAt startDate: Date, endAt endDate: Date) {
                 self.onEventAdded?(event)
             }
             
-            func icView(_ icView: ICView<View, Cell>, didMove event: View.VM, startAt startDate: Date, endAt endDate: Date) {
+            func icView(_ icView: ICView<View, Cell, Settings>, didMove event: View.VM, startAt startDate: Date, endAt endDate: Date) {
                 self.onEventMoved?(event)
             }
             
-            func icView(_ icView: ICView<View, Cell>, didCancel event: View.VM, startAt startDate: Date, endAt endDate: Date) {
+            func icView(_ icView: ICView<View, Cell, Settings>, didCancel event: View.VM, startAt startDate: Date, endAt endDate: Date) {
                 self.onEventCanceled?(event)
             }
             
