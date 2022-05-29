@@ -1,13 +1,13 @@
 # InfiniteCalendar
 
-**GoogleCalendar like infinite scrollable Calendar for SwiftUI.**
+**Google Calendar-like infinite scrollable calendar for SwiftUI.**
 
 [![Twitter](https://img.shields.io/badge/Twitter-%40ShoheOhtani-blue)](https://twitter.com/ShoheOhtani)
 ![Swift Version](https://img.shields.io/badge/Swift-5.1-orange.svg)
 [![SPM compatible](https://img.shields.io/badge/SwiftPM-compatible-yellowgreen.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-InfiniteCalendar is infinite scrollable Calendar for iOS written in Swift.  
+InfiniteCalendar is infinite scrollable calendar for iOS written in Swift.  
 
 <img align="right" width="100%" height="auto" src="https://github.com/shohe/InfiniteCalendar/raw/media/Assets/animation-mock-iPhone-12Pro.gif"/>
 
@@ -255,32 +255,70 @@ You can customize each components on the bellow.
   - DateHeaderBackground
   - AllDayHeaderBackground
 
-**Default components** 
+**Associatedtypes** 
 
-Component calss is define as typealias to customize.
+Component class is define as typealias to customize.
 <img align="center" width="100%" height="auto" src="https://github.com/shohe/InfiniteCalendar/raw/media/Assets/marking-components.png"/>
 
 ```swift
-public typealias TimeHeader = ICTHeader
-public typealias TimeHeaderBackground = ICTHeaderBackground
-public typealias DateHeader = ICDHeader
-public typealias DateHeaderBackground = ICDHeaderBackground
-public typealias DateHeaderCorner = ICDCorner
-public typealias AllDayHeader = ICAllDayHeader
-public typealias AllDayHeaderBackground = ICAllDayHeaderBackground
-public typealias AllDayHeaderCorner = ICAllDayCorner
-public typealias Timeline = ICTimeline
+//* When you customize, set two of classes to custom class you created.
+// TimeHeader 
+associatedtype TimeHeaderView: ICTimeHeaderView
+associatedtype TimeHeader: ICTimeHeader<TimeHeaderView>
+
+// DateHeader
+associatedtype DateHeaderView: ICDateHeaderView
+associatedtype DateHeader: ICDateHeader<DateHeaderView>
+
+// DateHeaderCorner
+associatedtype DateCornerView: ICDateCornerView
+associatedtype DateCorner: ICDateCorner<DateCornerView>
+
+// AllDayHeader
+associatedtype AllDayHeaderView: ICAllDayHeaderView
+associatedtype AllDayHeader: ICAllDayHeader<AllDayHeaderView>
+
+// AllDayHeaderCorner
+associatedtype AllDayCornerView: ICAllDayCornerView
+associatedtype AllDayCorner: ICAllDayCorner<AllDayCornerView>
+
+// Timeline
+associatedtype TimelineView: ICTimelineView
+associatedtype Timeline: ICTimeline<TimelineView>
+
+// TimeHeaderBackground
+associatedtype TimeHeaderBackgroundView: ICTimeHeaderBackgroundView
+associatedtype TimeHeaderBackground: ICTimeHeaderBackground<TimeHeaderBackgroundView>
+
+// DateHeaderBackground
+associatedtype DateHeaderBackgroundView: ICDateHeaderBackgroundView
+associatedtype DateHeaderBackground: ICDateHeaderBackground<DateHeaderBackgroundView>
+
+// AllDayHeaderBackground
+associatedtype AllDayHeaderBackgroundView: ICAllDayHeaderBackgroundView
+associatedtype AllDayHeaderBackground: ICAllDayHeaderBackground<AllDayHeaderBackgroundView>
 ```
 
 
 #### Sample custom component (Timeline)
-```swift
-// Timeline is SupplementaryCell type. So must SubClass of `ViewHostingSupplementaryCell`
-public final class CustomTimeline: ViewHostingSupplementaryCell<CustomTimelineView> {}
 
-public struct CustomTimelineView: ICComponentView {
-    // Must use ICTimelineItem
-    public typealias Item = ICTimelineItem 
+All you need is 4 steps.
+1. Create CustomView and Cell for wrap the View
+2. Create CustomSetting class
+3. Set the typealiases of each classes to View and Cell you created
+4. Set the CustomSetting class to InfiniteCalendar
+
+</br>
+e.g. Customize DateHeader component.
+
+##### 1. Create CustomView and Cell for wrap the View
+```swift
+// DateHeader should be inherited `ICDateHeader`.
+class CustomDateHeader: ICDateHeader<CustomDateHeaderView> {}
+
+// CustomView should be inherited `ICDateHeaderView`.
+struct CustomDateHeaderView: ICDateHeaderView {
+    public typealias Item = ICDateHeaderItem
 
     var item: Item
     
@@ -289,30 +327,51 @@ public struct CustomTimelineView: ICComponentView {
     }
     
     public var body: some View {
-        Rectangle()
-            .frame(height: 1.0)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .foregroundColor(.red)
-            .opacity(item.isDisplayed ? 1 : 0)
+        ...
     }
 }
 ```
 
-Create SubClass of ICViewSettings to set custom component.
+##### 2. Create CustomSetting class
+Create SubClass inherited `ICSettings`.
 ```swift
-class Settings: ICViewSettings {
-    typealias Timeline = CustomTimeline
-
-    init(numOfDays: Int, initDate: Date) {
-        super.init()
-        self.numOfDays = numOfDays
-        self.initDate = initDate
-    }
-
+class CustomSettings: ICSettings {
+    @Published public var numOfDays: Int = 1
+    @Published public var initDate: Date = Date()
+    @Published public var scrollType: ScrollType = .pageScroll
+    @Published public var moveTimeMinInterval: Int = 15
+    @Published public var timeRange: (startTime: Int, endTime: Int) = (1, 23)
+    @Published public var withVibrateFeedback: Bool = true
+    
+    required public init() {}
+    
     ...
 }
 ```
 
+##### 3. Set the typealiases of each classes to View and Cell you created
+```swift
+class CustomSettings: ICSettings {
+    typealias DateHeaderView = CustomDateHeaderView
+    typealias DateHeader = CustomDateHeader
+    ...
+}
+```
+
+##### 4. Set the CustomSetting class to InfiniteCalendar
+```swift
+...
+
+@State var events: [EventCellView.VM] = SampleData().events
+@State var didTapToday: Bool = false
+@ObservedObject var settings: CustomSettings = CustomSettings()
+
+var body: some View {
+    InfiniteCalendar<EventCellView, EventCell, CustomSettings>(events: $events, settings: settings, didTapToday: $didTapToday)
+}
+
+...
+```
 ----
 
 ## License
