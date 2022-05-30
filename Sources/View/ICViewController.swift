@@ -9,8 +9,8 @@ import UIKit
 
 public class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIViewController {
     
-    var calendarView: ICView<View,Cell,Settings>!
-    var currentNumOfDays: Int = 0
+    public var calendarView: ICView<View,Cell,Settings>!
+    public var currentNumOfDays: Int = 0
     
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,12 +36,12 @@ public class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, S
         }
     }
     
-    func setDelegate(_ delegate: ICViewDelegate<View,Cell,Settings>) {
+    public func setDelegate(_ delegate: ICViewDelegate<View,Cell,Settings>) {
         calendarView.delegate = delegate /// base delegate
         calendarView.delegateForLongTap = delegate
     }
     
-    func updateCalendar(events: [View.VM], settings: Settings, didTapToday: Bool) {
+    public func updateCalendar(events: [View.VM], settings: Settings, didTapToday: Bool) {
         let isUpdateNumOfDays: Bool = (currentNumOfDays != settings.numOfDays)
         
         calendarView.updateEvents(events)
