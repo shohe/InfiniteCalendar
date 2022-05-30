@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-protocol ICDataSourceDelegate: AnyObject {
+public protocol ICDataSourceDelegate: AnyObject {
     func didUpdateAllDayHeader(view: UICollectionReusableView, kind: String, isExpanded: Bool)
     func didSelectAllDayItem(date: Date, at indexPath: IndexPath)
 }

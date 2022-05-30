@@ -10,13 +10,13 @@ import UIKit
 open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     // UI params
-    var hourHeight: CGFloat!
+    public var hourHeight: CGFloat!
     public var dateHeaderHeight: CGFloat!
     public var timeHeaderWidth: CGFloat!
     public var allDayHeaderHeight: CGFloat = 0
     public var sectionWidth: CGFloat!
     
-    var minuteHeight: CGFloat { return hourHeight / 60 }
+    public var minuteHeight: CGFloat { return hourHeight / 60 }
     
     /// Date header is stay on top, when its scrolling down.
     open var isStickeyDateHeader: Bool { return true }
@@ -41,22 +41,22 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     let minBackgroundZ = 0
     
     // Attributes
-    typealias AttDic = [IndexPath: UICollectionViewLayoutAttributes]
+    public typealias AttDic = [IndexPath: UICollectionViewLayoutAttributes]
     
-    var allAttributes = [UICollectionViewLayoutAttributes]()
-    var itemAttributes = AttDic()
-    var dateHeaderAttributes = AttDic()
-    var dateHeaderBackgroundAttributes = AttDic()
-    var timeHeaderAttributes = AttDic()
-    var timeHeaderBackgroundAttributes = AttDic()
-    var verticalGridlineAttributes = AttDic()
-    var horizontalGridlineAttributes = AttDic()
-    var cornerHeaderAttributes = AttDic()
-    var currentTimelineAttributes = AttDic()
+    public var allAttributes = [UICollectionViewLayoutAttributes]()
+    public var itemAttributes = AttDic()
+    public var dateHeaderAttributes = AttDic()
+    public var dateHeaderBackgroundAttributes = AttDic()
+    public var timeHeaderAttributes = AttDic()
+    public var timeHeaderBackgroundAttributes = AttDic()
+    public var verticalGridlineAttributes = AttDic()
+    public var horizontalGridlineAttributes = AttDic()
+    public var cornerHeaderAttributes = AttDic()
+    public var currentTimelineAttributes = AttDic()
     
-    var allDayHeaderAttributes = AttDic()
-    var allDayHeaderBackgroundAttributes = AttDic()
-    var allDayCornerAttributes = AttDic()
+    public var allDayHeaderAttributes = AttDic()
+    public var allDayHeaderBackgroundAttributes = AttDic()
+    public var allDayCornerAttributes = AttDic()
     
     var currentTimeComponents: DateComponents {
         if cachedCurrentTimeComponents[0] == nil {
@@ -65,11 +65,11 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         return cachedCurrentTimeComponents[0]!
     }
     
-    var cachedDayDateComponents = [Int: DateComponents]()
-    var cachedStartTimeDateComponents = [IndexPath: DateComponents]()
-    var cachedEndTimeDateComponents = [IndexPath: DateComponents]()
-    var registeredDecorationClasses = [String: AnyClass]()
-    var cachedCurrentTimeComponents = [Int: DateComponents]()
+    public var cachedDayDateComponents = [Int: DateComponents]()
+    public var cachedStartTimeDateComponents = [IndexPath: DateComponents]()
+    public var cachedEndTimeDateComponents = [IndexPath: DateComponents]()
+    public var registeredDecorationClasses = [String: AnyClass]()
+    public var cachedCurrentTimeComponents = [Int: DateComponents]()
     
     var needsToPrepareAttributesForAllSections = true
     
@@ -97,12 +97,12 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     
     public var delegate: ICViewFlowLayoutDelegate<Settings>!
-    private var currentInitDate: Date! // This `currentInitDate` is should be leftest date for current collectionView
-    private var currentSettings: Settings!
+    public var currentInitDate: Date! // This `currentInitDate` is should be leftest date for current collectionView
+    public var currentSettings: Settings!
     private var minuteTimer: Timer?
     
     
-    init(settings: Settings, delegate: ICViewFlowLayoutDelegate<Settings>) {
+    public init(settings: Settings, delegate: ICViewFlowLayoutDelegate<Settings>!) {
         super.init()
         self.delegate = delegate
         currentSettings = settings
@@ -282,52 +282,9 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         let adjustedX = _point.x - timeHeaderWidth - contentsMargin.left
         return Int(adjustedX / sectionWidth)
     }
-}
-
-
-// MARK: - CGPoint
-extension ICViewFlowLayout {
-    func offset(forCurrentTimeline scrollView: UIScrollView) -> CGPoint {
-        let calendarContentMinY = dateHeaderHeight + contentsMargin.top
-        let timeY = calendarContentMinY + (CGFloat(currentTimeComponents.hour!).toDecimal1Value() * hourHeight + CGFloat(currentTimeComponents.minute!) * minuteHeight)
-        let timelineOffsetY = timeY - (defaultGridThickness / 2.0).toDecimal1Value() - defaultCurrentTimelineHeight/2
-        
-        let maxOffsetY = scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom
-        let offsetY = timelineOffsetY - scrollView.center.y
-        return CGPoint(x: scrollView.contentOffset.x, y: min(max(offsetY, -allDayHeaderHeight), maxOffsetY))
-    }
     
-    open func offset(forHorizontalBounce scrollView: UIScrollView) -> CGPoint {
-        var offset: CGPoint = scrollView.contentOffset
-        
-        let min: CGFloat = 0
-        let max: CGFloat = scrollView.contentSize.width - scrollView.frame.width
-        if offset.x <= min {
-            offset.x = min
-        } else if offset.x >= max {
-            offset.x = max
-        }
-        
-        return CGPoint(x: offset.x, y: offset.y)
-    }
     
-    /// Block position for new cell from tap position.
-    /// If set minimum  block height, set specific BlockMinute. Default value is 30min.
-    open func point(forStartBlockFrom position: CGPoint, withMinimumBlockMinute minute: Int = 30) -> CGPoint {
-        let contentMinX: CGFloat = timeHeaderWidth + contentsMargin.left
-        let contentMinY: CGFloat = dateHeaderHeight + contentsMargin.top + allDayHeaderHeight
-        
-        let size: CGSize = CGSize(width: sectionWidth, height: CGFloat(minute) / 60 * hourHeight)
-        
-        let blockDatePositionX: Int = Int((position.x - contentMinX) / size.width)
-        let blockHourPositionY: Int = Int((position.y - contentMinY) / size.height)
-        
-        let minX: CGFloat = CGFloat(blockDatePositionX) * size.width + contentMinX
-        let minY: CGFloat = CGFloat(blockHourPositionY) * size.height + contentMinY
-        
-        return CGPoint(x: minX, y: minY)
-    }
-    
+    // MARK: - CGPoint
     /// The point move by is must be point for CollectionView.
     open func point(forMoveTo point: CGPoint, pointInView targetPoint: CGPoint, withSection section: Int) -> CGPoint {
         return CGPoint(
@@ -335,120 +292,17 @@ extension ICViewFlowLayout {
             y: max(max(point.y - targetPoint.y, dateHeaderHeight), CGFloat(collectionView?.contentOffset.y ?? 0) + dateHeaderHeight + allDayHeaderHeight)
         )
     }
-}
-
-
-// MARK: - Date
-extension ICViewFlowLayout {
-    open func date(forSection section: Int) -> Date {
-        return Calendar.current.date(byAdding: .day, value: section, to: currentInitDate)!
+    
+    
+    // MARK: - CGRect
+    /// Rect for new cell.
+    /// If set specific height by minute, set specificMin. Default value is 60min.
+    open func rect(forNewCellAt position: CGPoint, withSpecificMinute specificMin: Int = 60) -> CGRect {
+        let size: CGSize = CGSize(width: sectionWidth, height: hourHeight * CGFloat(specificMin)/60)
+        let origin: CGPoint = point(forStartBlockFrom: position)
+        return CGRect(origin: origin, size: size)
     }
     
-    open func date(forContentOffset contentOffset: CGPoint) -> Date {
-        let adjustedX = contentOffset.x - contentsMargin.left
-        let section = Int(adjustedX / sectionWidth)
-        return date(forSection: section)
-    }
-    
-    open func dates(forInCurrentPage collectionView: UICollectionView, isScrolling: Bool) -> [Date] {
-        var dates = [Date]()
-
-        if !isScrolling {
-            let passedDates: Int = Int(collectionView.contentOffset.x / sectionWidth)
-            for i in passedDates ..< passedDates + currentSettings.numOfDays {
-                dates.append(currentInitDate.set(day: currentInitDate.day + i))
-            }
-            return dates
-        }
-        
-        var startDate = date(forContentOffset: collectionView.contentOffset)
-        // substract 1 to make sure it won't include the next section when reach the boundary
-        let contentViewWidth: CGFloat = collectionView.frame.width - timeHeaderWidth - contentsMargin.left - contentsMargin.right
-        let endDate = date(forContentOffset: CGPoint(
-            x: collectionView.contentOffset.x + contentViewWidth - 1,
-            y: collectionView.contentOffset.y
-        ))
-        repeat {
-            dates.append(startDate)
-            startDate = startDate.add(component: .day, value: 1)
-        } while startDate <= endDate
-
-        return dates
-    }
-    
-    open func date(forTimeHeaderAt indexPath: IndexPath) -> Date {
-        var components = daysForSection(indexPath.section)
-        
-        let hour = indexPath.item / (60/moveTimeInterval)
-        let minute = Int(CGFloat(indexPath.item).truncatingRemainder(dividingBy: CGFloat(60/moveTimeInterval))) * moveTimeInterval
-        
-        components.hour = hour
-        components.minute = minute
-        
-        return Calendar.current.date(from: components)!
-    }
-    
-    open func date(forDateHeaderAt indexPath: IndexPath) -> Date {
-        let day = delegate.collectionView(collectionView!, layout: self, dayForSection: indexPath.section)
-        return day.startOfDay
-    }
-    
-    /// Get date excluding time from point.X for **gesture point in collectionView only** rather than collectionView contentOffset
-    open func date(forCollectionViewAt point: CGPoint) -> Date {
-        let adjustedX = point.x - timeHeaderWidth - contentsMargin.left
-        let section = Int(adjustedX / sectionWidth)
-        let date = date(forSection: section)
-        let time = time(forCollectionViewPoint: point)
-        return date.set(hour: time.hour, minute: time.minute, second: time.second)
-    }
-    
-    /// Get (hour, minute) from point.X for **gesture point in collectionView only** rather than collectionView contentOffset
-    open func time(forCollectionViewPoint point: CGPoint) -> (hour: Int, minute: Int, second: Int) {
-        var adjustedY = point.y - dateHeaderHeight - contentsMargin.top
-        let minY: CGFloat = 0
-        let maxY: CGFloat = collectionView!.contentSize.height - contentsMargin.top - contentsMargin.bottom - dateHeaderHeight - allDayHeaderHeight
-        adjustedY = max(minY, min(adjustedY, maxY))
-        let hour = Int(adjustedY / hourHeight)
-        let minute = Int((adjustedY / hourHeight - CGFloat(hour)) * 60)
-        
-        return (hour, minute, 0)
-    }
-    
-    /// Get startDate & endDate from cell's rect on CollectionView
-    open func dateRange(forCell rect: CGRect, type action: LongTapType?, originStart: Date, originEnd: Date?) -> (startDate: Date, endDate: Date) {
-        let base = date(forCollectionViewAt: CGPoint(x: rect.minX, y: rect.minY))
-        
-        switch action {
-        case .addNew:
-            // adjust start & end time by same way as hightlight time
-            let startIndex = indexPath(forHighlightAt: rect.origin)
-            let endIndex = indexPath(forHighlightAt: CGPoint(x: rect.minX, y: rect.maxY))
-            let startTime = date(forTimeHeaderAt: startIndex)
-            let endTime = date(forTimeHeaderAt: endIndex)
-            return (
-                base.set(hour: startTime.hour, minute: startTime.minute),
-                base.set(hour: (endTime.hour < startTime.hour) ? 24 : endTime.hour, minute: endTime.minute)
-            )
-        default:
-            let startTime = date(forTimeHeaderAt: indexPath(forHighlightAt: rect.origin))
-            let difference: DateComponents = Calendar.current.dateComponents([.day, .hour, .minute, .second], from: originStart, to: originEnd!)
-            
-            return (
-                base.set(hour: startTime.hour, minute: startTime.minute),
-                base.set(
-                    day: base.day + (difference.day ?? 0),
-                    hour: startTime.hour + (difference.hour ?? 0),
-                    minute: startTime.minute + (difference.minute ?? 0),
-                    second: startTime.second + (difference.second ?? 0)
-                )
-            )
-        }
-    }
-}
-
-
-// MARK: - Rect
-extension ICViewFlowLayout {
     open func rect(forSection section: Int) -> CGRect {
         return CGRect(x: timeHeaderWidth + sectionWidth * CGFloat(section), y: 0, width: sectionWidth, height: collectionViewContentSize.height)
     }
@@ -462,14 +316,6 @@ extension ICViewFlowLayout {
         let hourY = calendarMinY + (CGFloat(isLast ? 24 : date.hour)*hourHeight)
         let minuteY = timeHeaderHeight * CGFloat(date.minute/moveTimeInterval)
         return CGRect(x: headerMinX, y: hourY + minuteY, width: timeHeaderWidth, height: timeHeaderHeight)
-    }
-    
-    /// Rect for new cell.
-    /// If set specific height by minute, set specificMin. Default value is 60min.
-    open func rect(forNewCellAt position: CGPoint, withSpecificMinute specificMin: Int = 60) -> CGRect {
-        let size: CGSize = CGSize(width: sectionWidth, height: hourHeight * CGFloat(specificMin)/60)
-        let origin: CGPoint = point(forStartBlockFrom: position)
-        return CGRect(origin: origin, size: size)
     }
     
     /// Rect for move cell.
@@ -517,68 +363,17 @@ extension ICViewFlowLayout {
         return CGRect(origin: origin, size: size)
     }
     
+    
+    // MARK: - CGSize
     open func size(forMoveCellBetween start: Date, andEnd end: Date) -> CGSize {
         let secondDiff: Int = abs(Date.timeBetween(start: start, end: end, ignoreDate: false))
         let height: CGFloat = (minuteHeight / 60) * CGFloat(secondDiff)
         let horizontalMargin: CGFloat = contentsMargin.left + contentsMargin.right + defaultGridThickness*2
         return CGSize(width: sectionWidth - horizontalMargin, height: height)
     }
-}
-
-
-// MARK: - Layout
-extension ICViewFlowLayout {
-    // MARK: UI, Layout
-    func setupUIParams(hourHeight: CGFloat? = nil, timeHeaderWidth: CGFloat? = nil, dateHeaderHeight: CGFloat? = nil) {
-        self.hourHeight = hourHeight ?? defaultHourHeight
-        self.dateHeaderHeight = dateHeaderHeight ?? defaultDateHeaderHeight
-        self.timeHeaderWidth = timeHeaderWidth ?? defaultTimeHeaderWidth
-    }
     
-    func initializeMinuteTick() {
-        if #available(iOS 10.0, *) {
-            minuteTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true, block: { [weak self] _ in
-                self?.minuteTick()
-            })
-        } else {
-            minuteTimer = WeakTimer.scheduleTimer(timeInterval: 60, target: self, repeats: true, action: { [weak self] _ in
-                self?.minuteTick()
-            })
-        }
-    }
     
-    private func minuteTick() {
-        cachedCurrentTimeComponents.removeAll()
-        invalidateLayout()
-    }
-    
-    /**
-     Setup method for timeHeaderView
-     
-     - Parameters:
-        - collectionView: self CollectionView
-        - attributes: the pointer of attributes
-     */
-    func layoutTimeHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
-        let indexPaths: [IndexPath] = indexPathsForTimeHeader()
-        indexPaths.forEach { indexPath in
-            (attributes, timeHeaderAttributes) = layoutAttributesForSupplementaryView(at: indexPath, ofKind: Settings.TimeHeader.className, withItemCache: timeHeaderAttributes)
-            let date = date(forTimeHeaderAt: indexPath)
-            attributes.frame = rect(collectionView, forTimeHeaderAt: date, isLast: (indexPaths.last == indexPath))
-            attributes.zIndex = zIndexForElementKind(Settings.TimeHeader.className)
-        }
-        
-        // background
-        (attributes, timeHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.TimeHeaderBackground.className, withItemCache: timeHeaderBackgroundAttributes)
-        attributes.frame = CGRect(
-            x: fmax(collectionView.contentOffset.x, 0),
-            y: collectionView.contentOffset.y,
-            width: timeHeaderWidth,
-            height: collectionView.frame.height + (safeAreaInsets?.top ?? 0) + (safeAreaInsets?.bottom ?? 0)
-        )
-        attributes.zIndex = zIndexForElementKind(Settings.TimeHeaderBackground.className)
-    }
-    
+    // MARK: - Layout
     /**
      Setup method for dateHeaderView
      
@@ -587,7 +382,7 @@ extension ICViewFlowLayout {
         - collectionView: self CollectionView
         - attributes: the pointer of attributes
      */
-    func layoutDateHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
+    open func layoutDateHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let calendarMinX = timeHeaderWidth + contentsMargin.left
         let calendarGridMinY = dateHeaderHeight + contentsMargin.top
         let dateHeaderMinY = isStickeyDateHeader ? collectionView.contentOffset.y : fmax(collectionView.contentOffset.y, 0.0)
@@ -619,78 +414,7 @@ extension ICViewFlowLayout {
         attributes.zIndex = zIndexForElementKind(Settings.DateHeaderBackground.className)
     }
     
-    func layoutCurrentTimelineAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
-        let calendarMinX = timeHeaderWidth + contentsMargin.left
-        let calendarContentMinY = dateHeaderHeight + contentsMargin.top
-        
-        sectionIndexes.enumerate(_:) { (section, _) in
-            let sectionMinX = calendarMinX + sectionWidth * CGFloat(section)
-            let timeY = calendarContentMinY + (CGFloat(currentTimeComponents.hour!).toDecimal1Value() * hourHeight + CGFloat(currentTimeComponents.minute!) * minuteHeight)
-            let calendarGridMinY = timeY - (defaultGridThickness / 2.0).toDecimal1Value() - defaultCurrentTimelineHeight/2
-            
-            (attributes, currentTimelineAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.Timeline.className, withItemCache: currentTimelineAttributes)
-            attributes.frame = CGRect(x: sectionMinX, y: calendarGridMinY, width: sectionWidth, height: defaultCurrentTimelineHeight)
-            attributes.zIndex = zIndexForElementKind(Settings.Timeline.className)
-        }
-    }
-    
-    func layoutCornerHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
-        (attributes, cornerHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.DateCorner.className, withItemCache: cornerHeaderAttributes)
-        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: dateHeaderHeight))
-        attributes.zIndex = zIndexForElementKind(Settings.DateCorner.className)
-    }
-    
-    func layoutAllDayHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
-        let calendarContentMinX = timeHeaderWidth + contentsMargin.left
-        
-        sectionIndexes.enumerate(_:) { (section, _) in
-            let sectionMinX = calendarContentMinX + sectionWidth * CGFloat(section)
-            
-            (attributes, allDayHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.AllDayHeader.className, withItemCache: allDayHeaderAttributes)
-            attributes.frame = CGRect(
-                x: sectionMinX,
-                y: collectionView.contentOffset.y + dateHeaderHeight,
-                width: sectionWidth,
-                height: allDayHeaderHeight
-            )
-            attributes.zIndex = zIndexForElementKind(Settings.AllDayHeader.className)
-        }
-        
-        // background
-        (attributes, allDayHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayHeaderBackground.className, withItemCache: allDayHeaderBackgroundAttributes)
-        attributes.frame = CGRect(
-            x: collectionView.contentOffset.x,
-            y: collectionView.contentOffset.y + dateHeaderHeight,
-            width: collectionViewContentSize.width,
-            height: allDayHeaderHeight
-        )
-        attributes.zIndex = zIndexForElementKind(Settings.AllDayHeaderBackground.className)
-        
-        // corner
-        (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
-        attributes.frame = CGRect(
-            x: collectionView.contentOffset.x,
-            y: collectionView.contentOffset.y + dateHeaderHeight,
-            width: timeHeaderWidth,
-            height: allDayHeaderHeight
-        )
-        attributes.zIndex = zIndexForElementKind(Settings.AllDayCorner.className)
-    }
-    
-    func layoutAttributesForCell(at indexPath: IndexPath, withItemCache itemCache: AttDic) -> (UICollectionViewLayoutAttributes, AttDic) {
-        var layoutAttributes = itemCache[indexPath]
-        
-        if layoutAttributes == nil {
-            var _itemCache = itemCache
-            layoutAttributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
-            _itemCache[indexPath] = layoutAttributes
-            return (layoutAttributes!, _itemCache)
-        } else {
-            return (layoutAttributes!, itemCache)
-        }
-    }
-    
-    func layoutItemsAttributes(section: Int, sectionX: CGFloat, calendarStartY: CGFloat) {
+    open func layoutItemsAttributes(section: Int, sectionX: CGFloat, calendarStartY: CGFloat) {
         var attributes = UICollectionViewLayoutAttributes()
         var sectionItemAttributes = [UICollectionViewLayoutAttributes]()
         
@@ -779,12 +503,323 @@ extension ICViewFlowLayout {
         }
     }
     
+    
+    // MARK: - Date
+    open func date(forSection section: Int) -> Date {
+        return Calendar.current.date(byAdding: .day, value: section, to: currentInitDate)!
+    }
+    
+    open func date(forContentOffset contentOffset: CGPoint) -> Date {
+        let adjustedX = contentOffset.x - contentsMargin.left
+        let section = Int(adjustedX / sectionWidth)
+        return date(forSection: section)
+    }
+    
+    open func dates(forInCurrentPage collectionView: UICollectionView, isScrolling: Bool) -> [Date] {
+        var dates = [Date]()
+
+        if !isScrolling {
+            let passedDates: Int = Int(collectionView.contentOffset.x / sectionWidth)
+            for i in passedDates ..< passedDates + currentSettings.numOfDays {
+                dates.append(currentInitDate.set(day: currentInitDate.day + i))
+            }
+            return dates
+        }
+        
+        var startDate = date(forContentOffset: collectionView.contentOffset)
+        // substract 1 to make sure it won't include the next section when reach the boundary
+        let contentViewWidth: CGFloat = collectionView.frame.width - timeHeaderWidth - contentsMargin.left - contentsMargin.right
+        let endDate = date(forContentOffset: CGPoint(
+            x: collectionView.contentOffset.x + contentViewWidth - 1,
+            y: collectionView.contentOffset.y
+        ))
+        repeat {
+            dates.append(startDate)
+            startDate = startDate.add(component: .day, value: 1)
+        } while startDate <= endDate
+
+        return dates
+    }
+    
+    open func date(forTimeHeaderAt indexPath: IndexPath) -> Date {
+        var components = daysForSection(indexPath.section)
+        
+        let hour = indexPath.item / (60/moveTimeInterval)
+        let minute = Int(CGFloat(indexPath.item).truncatingRemainder(dividingBy: CGFloat(60/moveTimeInterval))) * moveTimeInterval
+        
+        components.hour = hour
+        components.minute = minute
+        
+        return Calendar.current.date(from: components)!
+    }
+    
+    open func date(forDateHeaderAt indexPath: IndexPath) -> Date {
+        let day = delegate.collectionView(collectionView!, layout: self, dayForSection: indexPath.section)
+        return day.startOfDay
+    }
+    
+    open func daysForSection(_ section: Int) -> DateComponents {
+        guard let cv = collectionView else { fatalError() }
+        if let components = cachedDayDateComponents[section] {
+            return components
+        }
+        
+        let day = delegate.collectionView(cv, layout: self, dayForSection: section)
+        let startOfDay = day.startOfDay
+        let dayDateComponents = Calendar.current.dateComponents([.year, .month, .day], from: startOfDay)
+        cachedDayDateComponents[section] = dayDateComponents
+        return dayDateComponents
+    }
+    
+    open func startTimeForIndexPath(_ indexPath: IndexPath) -> DateComponents {
+        if cachedStartTimeDateComponents[indexPath] != nil {
+            return cachedStartTimeDateComponents[indexPath]!
+        } else {
+            let date = delegate.collectionView(collectionView!, layout: self, startTimeForItemAtIndexPath: indexPath)
+            cachedStartTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
+            return cachedStartTimeDateComponents[indexPath]!
+        }
+    }
+    
+    open func endTimeForIndexPath(_ indexPath: IndexPath) -> DateComponents {
+        if cachedEndTimeDateComponents[indexPath] != nil {
+            return cachedEndTimeDateComponents[indexPath]!
+        } else {
+            let date = delegate.collectionView(collectionView!, layout: self, endTimeForItemAtIndexPath: indexPath)
+            cachedEndTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
+            return cachedEndTimeDateComponents[indexPath]!
+        }
+    }
+    
+    /// Get date excluding time from point.X for **gesture point in collectionView only** rather than collectionView contentOffset
+    open func date(forCollectionViewAt point: CGPoint) -> Date {
+        let adjustedX = point.x - timeHeaderWidth - contentsMargin.left
+        let section = Int(adjustedX / sectionWidth)
+        let date = date(forSection: section)
+        let time = time(forCollectionViewPoint: point)
+        return date.set(hour: time.hour, minute: time.minute, second: time.second)
+    }
+    
+    /// Get (hour, minute) from point.X for **gesture point in collectionView only** rather than collectionView contentOffset
+    open func time(forCollectionViewPoint point: CGPoint) -> (hour: Int, minute: Int, second: Int) {
+        var adjustedY = point.y - dateHeaderHeight - contentsMargin.top
+        let minY: CGFloat = 0
+        let maxY: CGFloat = collectionView!.contentSize.height - contentsMargin.top - contentsMargin.bottom - dateHeaderHeight - allDayHeaderHeight
+        adjustedY = max(minY, min(adjustedY, maxY))
+        let hour = Int(adjustedY / hourHeight)
+        let minute = Int((adjustedY / hourHeight - CGFloat(hour)) * 60)
+        
+        return (hour, minute, 0)
+    }
+    
+    /// Get startDate & endDate from cell's rect on CollectionView
+    open func dateRange(forCell rect: CGRect, type action: LongTapType?, originStart: Date, originEnd: Date?) -> (startDate: Date, endDate: Date) {
+        let base = date(forCollectionViewAt: CGPoint(x: rect.minX, y: rect.minY))
+        
+        switch action {
+        case .addNew:
+            // adjust start & end time by same way as hightlight time
+            let startIndex = indexPath(forHighlightAt: rect.origin)
+            let endIndex = indexPath(forHighlightAt: CGPoint(x: rect.minX, y: rect.maxY))
+            let startTime = date(forTimeHeaderAt: startIndex)
+            let endTime = date(forTimeHeaderAt: endIndex)
+            return (
+                base.set(hour: startTime.hour, minute: startTime.minute),
+                base.set(hour: (endTime.hour < startTime.hour) ? 24 : endTime.hour, minute: endTime.minute)
+            )
+        default:
+            let startTime = date(forTimeHeaderAt: indexPath(forHighlightAt: rect.origin))
+            let difference: DateComponents = Calendar.current.dateComponents([.day, .hour, .minute, .second], from: originStart, to: originEnd!)
+            
+            return (
+                base.set(hour: startTime.hour, minute: startTime.minute),
+                base.set(
+                    day: base.day + (difference.day ?? 0),
+                    hour: startTime.hour + (difference.hour ?? 0),
+                    minute: startTime.minute + (difference.minute ?? 0),
+                    second: startTime.second + (difference.second ?? 0)
+                )
+            )
+        }
+    }
+}
+
+
+// MARK: - CGPoint
+extension ICViewFlowLayout {
+    public func offset(forCurrentTimeline scrollView: UIScrollView) -> CGPoint {
+        let calendarContentMinY = dateHeaderHeight + contentsMargin.top
+        let timeY = calendarContentMinY + (CGFloat(currentTimeComponents.hour!).toDecimal1Value() * hourHeight + CGFloat(currentTimeComponents.minute!) * minuteHeight)
+        let timelineOffsetY = timeY - (defaultGridThickness / 2.0).toDecimal1Value() - defaultCurrentTimelineHeight/2
+        
+        let maxOffsetY = scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom
+        let offsetY = timelineOffsetY - scrollView.center.y
+        return CGPoint(x: scrollView.contentOffset.x, y: min(max(offsetY, -allDayHeaderHeight), maxOffsetY))
+    }
+    
+    public func offset(forHorizontalBounce scrollView: UIScrollView) -> CGPoint {
+        var offset: CGPoint = scrollView.contentOffset
+        
+        let min: CGFloat = 0
+        let max: CGFloat = scrollView.contentSize.width - scrollView.frame.width
+        if offset.x <= min {
+            offset.x = min
+        } else if offset.x >= max {
+            offset.x = max
+        }
+        
+        return CGPoint(x: offset.x, y: offset.y)
+    }
+    
+    /// Block position for new cell from tap position.
+    /// If set minimum  block height, set specific BlockMinute. Default value is 30min.
+    public func point(forStartBlockFrom position: CGPoint, withMinimumBlockMinute minute: Int = 30) -> CGPoint {
+        let contentMinX: CGFloat = timeHeaderWidth + contentsMargin.left
+        let contentMinY: CGFloat = dateHeaderHeight + contentsMargin.top + allDayHeaderHeight
+        
+        let size: CGSize = CGSize(width: sectionWidth, height: CGFloat(minute) / 60 * hourHeight)
+        
+        let blockDatePositionX: Int = Int((position.x - contentMinX) / size.width)
+        let blockHourPositionY: Int = Int((position.y - contentMinY) / size.height)
+        
+        let minX: CGFloat = CGFloat(blockDatePositionX) * size.width + contentMinX
+        let minY: CGFloat = CGFloat(blockHourPositionY) * size.height + contentMinY
+        
+        return CGPoint(x: minX, y: minY)
+    }
+}
+
+
+// MARK: - Layout
+extension ICViewFlowLayout {
+    // MARK: UI, Layout
+    public func setupUIParams(hourHeight: CGFloat? = nil, timeHeaderWidth: CGFloat? = nil, dateHeaderHeight: CGFloat? = nil) {
+        self.hourHeight = hourHeight ?? defaultHourHeight
+        self.dateHeaderHeight = dateHeaderHeight ?? defaultDateHeaderHeight
+        self.timeHeaderWidth = timeHeaderWidth ?? defaultTimeHeaderWidth
+    }
+    
+    public func initializeMinuteTick() {
+        if #available(iOS 10.0, *) {
+            minuteTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true, block: { [weak self] _ in
+                self?.minuteTick()
+            })
+        } else {
+            minuteTimer = WeakTimer.scheduleTimer(timeInterval: 60, target: self, repeats: true, action: { [weak self] _ in
+                self?.minuteTick()
+            })
+        }
+    }
+    
+    public func minuteTick() {
+        cachedCurrentTimeComponents.removeAll()
+        invalidateLayout()
+    }
+    
+    /**
+     Setup method for timeHeaderView
+     
+     - Parameters:
+        - collectionView: self CollectionView
+        - attributes: the pointer of attributes
+     */
+    public func layoutTimeHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
+        let indexPaths: [IndexPath] = indexPathsForTimeHeader()
+        indexPaths.forEach { indexPath in
+            (attributes, timeHeaderAttributes) = layoutAttributesForSupplementaryView(at: indexPath, ofKind: Settings.TimeHeader.className, withItemCache: timeHeaderAttributes)
+            let date = date(forTimeHeaderAt: indexPath)
+            attributes.frame = rect(collectionView, forTimeHeaderAt: date, isLast: (indexPaths.last == indexPath))
+            attributes.zIndex = zIndexForElementKind(Settings.TimeHeader.className)
+        }
+        
+        // background
+        (attributes, timeHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.TimeHeaderBackground.className, withItemCache: timeHeaderBackgroundAttributes)
+        attributes.frame = CGRect(
+            x: fmax(collectionView.contentOffset.x, 0),
+            y: collectionView.contentOffset.y,
+            width: timeHeaderWidth,
+            height: collectionView.frame.height + (safeAreaInsets?.top ?? 0) + (safeAreaInsets?.bottom ?? 0)
+        )
+        attributes.zIndex = zIndexForElementKind(Settings.TimeHeaderBackground.className)
+    }
+    
+    public func layoutCurrentTimelineAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
+        let calendarMinX = timeHeaderWidth + contentsMargin.left
+        let calendarContentMinY = dateHeaderHeight + contentsMargin.top
+        
+        sectionIndexes.enumerate(_:) { (section, _) in
+            let sectionMinX = calendarMinX + sectionWidth * CGFloat(section)
+            let timeY = calendarContentMinY + (CGFloat(currentTimeComponents.hour!).toDecimal1Value() * hourHeight + CGFloat(currentTimeComponents.minute!) * minuteHeight)
+            let calendarGridMinY = timeY - (defaultGridThickness / 2.0).toDecimal1Value() - defaultCurrentTimelineHeight/2
+            
+            (attributes, currentTimelineAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.Timeline.className, withItemCache: currentTimelineAttributes)
+            attributes.frame = CGRect(x: sectionMinX, y: calendarGridMinY, width: sectionWidth, height: defaultCurrentTimelineHeight)
+            attributes.zIndex = zIndexForElementKind(Settings.Timeline.className)
+        }
+    }
+    
+    public func layoutCornerHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
+        (attributes, cornerHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.DateCorner.className, withItemCache: cornerHeaderAttributes)
+        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: dateHeaderHeight))
+        attributes.zIndex = zIndexForElementKind(Settings.DateCorner.className)
+    }
+    
+    public func layoutAllDayHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
+        let calendarContentMinX = timeHeaderWidth + contentsMargin.left
+        
+        sectionIndexes.enumerate(_:) { (section, _) in
+            let sectionMinX = calendarContentMinX + sectionWidth * CGFloat(section)
+            
+            (attributes, allDayHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.AllDayHeader.className, withItemCache: allDayHeaderAttributes)
+            attributes.frame = CGRect(
+                x: sectionMinX,
+                y: collectionView.contentOffset.y + dateHeaderHeight,
+                width: sectionWidth,
+                height: allDayHeaderHeight
+            )
+            attributes.zIndex = zIndexForElementKind(Settings.AllDayHeader.className)
+        }
+        
+        // background
+        (attributes, allDayHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayHeaderBackground.className, withItemCache: allDayHeaderBackgroundAttributes)
+        attributes.frame = CGRect(
+            x: collectionView.contentOffset.x,
+            y: collectionView.contentOffset.y + dateHeaderHeight,
+            width: collectionViewContentSize.width,
+            height: allDayHeaderHeight
+        )
+        attributes.zIndex = zIndexForElementKind(Settings.AllDayHeaderBackground.className)
+        
+        // corner
+        (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
+        attributes.frame = CGRect(
+            x: collectionView.contentOffset.x,
+            y: collectionView.contentOffset.y + dateHeaderHeight,
+            width: timeHeaderWidth,
+            height: allDayHeaderHeight
+        )
+        attributes.zIndex = zIndexForElementKind(Settings.AllDayCorner.className)
+    }
+    
+    public func layoutAttributesForCell(at indexPath: IndexPath, withItemCache itemCache: AttDic) -> (UICollectionViewLayoutAttributes, AttDic) {
+        var layoutAttributes = itemCache[indexPath]
+        
+        if layoutAttributes == nil {
+            var _itemCache = itemCache
+            layoutAttributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+            _itemCache[indexPath] = layoutAttributes
+            return (layoutAttributes!, _itemCache)
+        } else {
+            return (layoutAttributes!, itemCache)
+        }
+    }
+    
     /// Group all the overlap items depending on the maximum overlap items
     ///
     /// Refer to the previous algorithm but integrated with groups
     /// - Parameter items: All the items(cells) in the UICollectionView
     /// - Returns: maxOverlapIntervalCount and all the maximum overlap groups
-    func groupOverlapItems(items: [UICollectionViewLayoutAttributes]) -> (maxOverlapIntervalCount: Int, overlapGroups: [[UICollectionViewLayoutAttributes]]) {
+    public func groupOverlapItems(items: [UICollectionViewLayoutAttributes]) -> (maxOverlapIntervalCount: Int, overlapGroups: [[UICollectionViewLayoutAttributes]]) {
         var maxOverlap = 0, currentOverlap = 0
         let sortedMinYItems = items.sorted(by: { $0.frame.minY < $1.frame.minY })
         let sortedMaxYItems = items.sorted(by: { $0.frame.maxY < $1.frame.maxY })
@@ -825,7 +860,7 @@ extension ICViewFlowLayout {
     ///   - currentMinX: Current minimum contentOffset(start position of the first item)
     ///   - sectionZ: section Z value (inout)
     ///   - adjustedItems: already adjused item (inout)
-    private func setItemsAdjustedAttributes(fullWidth: CGFloat,
+    public func setItemsAdjustedAttributes(fullWidth: CGFloat,
                                             items: [UICollectionViewLayoutAttributes],
                                             currentMinX: CGFloat,
                                             sectionZ: inout Int,
@@ -848,7 +883,7 @@ extension ICViewFlowLayout {
     ///   - sectionRange: current section minX and maxX range
     ///   - adjustedRanges: already adjusted ranges(cannot draw items on these ranges)
     /// - Returns: All available ranges after substract all adjusted ranges
-    func getAvailableRanges(sectionRange: ClosedRange<CGFloat>, adjustedRanges: [ClosedRange<CGFloat>]) -> [ClosedRange<CGFloat>] {
+    public func getAvailableRanges(sectionRange: ClosedRange<CGFloat>, adjustedRanges: [ClosedRange<CGFloat>]) -> [ClosedRange<CGFloat>] {
         var availableRanges: [ClosedRange<CGFloat>] = [sectionRange]
         let sortedAdjustedRange = adjustedRanges.sorted(by: { $0.lowerBound < $1.lowerBound })
         for adjustedRange in sortedAdjustedRange {
@@ -884,7 +919,7 @@ extension ICViewFlowLayout {
      - Parameters:
         - attributes: the pointer of attributes
      */
-    func layoutVerticalGridLineAttributes(section: Int, sectionX: CGFloat, calendarGridMinY: CGFloat, sectionHeight: CGFloat, attributes: inout UICollectionViewLayoutAttributes) {
+    public func layoutVerticalGridLineAttributes(section: Int, sectionX: CGFloat, calendarGridMinY: CGFloat, sectionHeight: CGFloat, attributes: inout UICollectionViewLayoutAttributes) {
         (attributes, verticalGridlineAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: section), ofKind: ICViewKinds.Decoration.verticalGridline, withItemCache: verticalGridlineAttributes)
         attributes.frame = CGRect(x: (sectionX - defaultGridThickness / 2.0).toDecimal1Value(), y: calendarGridMinY, width: defaultGridThickness, height: sectionHeight)
         attributes.zIndex = zIndexForElementKind(ICViewKinds.Decoration.verticalGridline)
@@ -896,7 +931,7 @@ extension ICViewFlowLayout {
      - Parameters:
         - attributes: the pointer of attributes
      */
-    func layoutHorizontalGridLineAttributes(collectionView: UICollectionView, calendarStartX: CGFloat, calendarStartY: CGFloat, attributes: inout UICollectionViewLayoutAttributes) {
+    public func layoutHorizontalGridLineAttributes(collectionView: UICollectionView, calendarStartX: CGFloat, calendarStartY: CGFloat, attributes: inout UICollectionViewLayoutAttributes) {
         var horizontalGridlineIndex = 0
         let gridWidth = collectionViewContentSize.width - timeHeaderWidth - contentsMargin.left - contentsMargin.right
         
@@ -915,7 +950,7 @@ extension ICViewFlowLayout {
         }
     }
     
-    func layoutAttributesForSupplementaryView(at indexPath: IndexPath, ofKind kind: String, withItemCache itemCache: AttDic) -> (UICollectionViewLayoutAttributes, AttDic) {
+    public func layoutAttributesForSupplementaryView(at indexPath: IndexPath, ofKind kind: String, withItemCache itemCache: AttDic) -> (UICollectionViewLayoutAttributes, AttDic) {
         var layoutAttributes = itemCache[indexPath]
         
         if let _layoutAttributes = layoutAttributes {
@@ -928,7 +963,7 @@ extension ICViewFlowLayout {
         }
     }
     
-    func layoutAttributesForDecorationView(at indexPath: IndexPath, ofKind kind: String, withItemCache itemCache: AttDic) -> (UICollectionViewLayoutAttributes, AttDic) {
+    public func layoutAttributesForDecorationView(at indexPath: IndexPath, ofKind kind: String, withItemCache itemCache: AttDic) -> (UICollectionViewLayoutAttributes, AttDic) {
         var layoutAttributes = itemCache[indexPath]
         
         if let _layoutAttributes = layoutAttributes {
@@ -938,39 +973,6 @@ extension ICViewFlowLayout {
             layoutAttributes = UICollectionViewLayoutAttributes(forDecorationViewOfKind: kind, with: indexPath)
             _itemCache[indexPath] = layoutAttributes
             return (layoutAttributes!, _itemCache)
-        }
-    }
-    
-    func daysForSection(_ section: Int) -> DateComponents {
-        guard let cv = collectionView else { fatalError() }
-        if let components = cachedDayDateComponents[section] {
-            return components
-        }
-        
-        let day = delegate.collectionView(cv, layout: self, dayForSection: section)
-        let startOfDay = day.startOfDay
-        let dayDateComponents = Calendar.current.dateComponents([.year, .month, .day], from: startOfDay)
-        cachedDayDateComponents[section] = dayDateComponents
-        return dayDateComponents
-    }
-    
-    func startTimeForIndexPath(_ indexPath: IndexPath) -> DateComponents {
-        if cachedStartTimeDateComponents[indexPath] != nil {
-            return cachedStartTimeDateComponents[indexPath]!
-        } else {
-            let date = delegate.collectionView(collectionView!, layout: self, startTimeForItemAtIndexPath: indexPath)
-            cachedStartTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
-            return cachedStartTimeDateComponents[indexPath]!
-        }
-    }
-    
-    func endTimeForIndexPath(_ indexPath: IndexPath) -> DateComponents {
-        if cachedEndTimeDateComponents[indexPath] != nil {
-            return cachedEndTimeDateComponents[indexPath]!
-        } else {
-            let date = delegate.collectionView(collectionView!, layout: self, endTimeForItemAtIndexPath: indexPath)
-            cachedEndTimeDateComponents[indexPath] = Calendar.current.dateComponents([.day, .hour, .minute], from: date)
-            return cachedEndTimeDateComponents[indexPath]!
         }
     }
     

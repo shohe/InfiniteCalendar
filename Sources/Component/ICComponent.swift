@@ -7,7 +7,9 @@
 
 import SwiftUI
 
-public protocol ICComponent { }
+public protocol ICComponent {
+    init()
+}
 public protocol ICComponentView: View {
     associatedtype Item: ICComponent
     init(_ item: Item)

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public class ICDataProvider<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: CollectionDataProvider {
+open class ICDataProvider<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: CollectionDataProvider {
     public typealias T = View.VM
     
     public let layout: ICViewFlowLayout<Settings>
@@ -17,7 +17,7 @@ public class ICDataProvider<View: CellableView, Cell: ViewHostingCell<View>, Set
     public var events = [Date: [T]]()
     
     
-    init(layout: ICViewFlowLayout<Settings>, allDayEvents: [Date: [T]], events: [Date: [T]], settings: Settings, preparePages: Int) {
+    public init(layout: ICViewFlowLayout<Settings>, allDayEvents: [Date: [T]], events: [Date: [T]], settings: Settings, preparePages: Int) {
         self.allDayEvents = allDayEvents
         self.events = events
         self.layout = layout
@@ -25,11 +25,11 @@ public class ICDataProvider<View: CellableView, Cell: ViewHostingCell<View>, Set
         self.preparePages = preparePages
     }
     
-    public func numberOfSections() -> Int {
+    open func numberOfSections() -> Int {
         return (preparePages * settings.numOfDays)
     }
     
-    public func numberOfItems(in section: Int) -> Int {
+    open func numberOfItems(in section: Int) -> Int {
         let date = layout.date(forDateHeaderAt: IndexPath(item: 0, section: section))
         if let events = events[date] {
             return events.count
@@ -38,13 +38,13 @@ public class ICDataProvider<View: CellableView, Cell: ViewHostingCell<View>, Set
         }
     }
     
-    public func item(at indexPath: IndexPath) -> View.VM? {
+    open func item(at indexPath: IndexPath) -> View.VM? {
         let date = layout.date(forDateHeaderAt: indexPath)
         return events[date]?[indexPath.row]
     }
     
     // TODO: updateItem
-    public func updateItem(at indexPath: IndexPath, value: View.VM) {
+    open func updateItem(at indexPath: IndexPath, value: View.VM) {
         let _ = layout.date(forDateHeaderAt: indexPath)
     }
 }

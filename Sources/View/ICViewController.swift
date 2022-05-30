@@ -7,7 +7,7 @@
 
 import UIKit
 
-public class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIViewController {
+open class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIViewController {
     
     public var calendarView: ICView<View,Cell,Settings>!
     public var currentNumOfDays: Int = 0

@@ -75,19 +75,19 @@ public extension Date {
     }
 }
 
-extension NSObject {
+public extension NSObject {
     static var className: String {
         return String(describing: self)
     }
 }
 
-extension View {
+public extension View {
     static var structName: String {
         return String(describing: type(of: self))
     }
 }
 
-extension UICollectionView {
+public extension UICollectionView {
     func setContentOffsetWithoutDelegate(_ contentOffset: CGPoint, animated: Bool) {
         let tempDelegate = self.delegate
         self.delegate = nil
@@ -96,17 +96,17 @@ extension UICollectionView {
     }
 }
 
-extension CGFloat {
+public extension CGFloat {
     func toDecimal1Value() -> CGFloat {
         return (self * 10).rounded() / 10
     }
 }
 
-extension CGPoint {
+public extension CGPoint {
     /**
     * Returns the length (magnitude) of the vector described by the CGPoint.
     */
-    public func length() -> CGFloat {
+    func length() -> CGFloat {
         return sqrt(x*x + y*y)
     }
 }
@@ -157,7 +157,7 @@ public extension UIScrollView {
 }
 
 // Anchor Constraints from JZiOSFramework
-extension UIView {
+public extension UIView {
 
     func setAnchorConstraintsEqualTo(widthAnchor: CGFloat?=nil, heightAnchor: CGFloat?=nil, centerXAnchor: NSLayoutXAxisAnchor?=nil, centerYAnchor: NSLayoutYAxisAnchor?=nil) {
 

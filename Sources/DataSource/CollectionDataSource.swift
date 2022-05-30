@@ -12,11 +12,11 @@ import UIKit
 open class CollectionDataSource<Provider: CollectionDataProvider, Cell: UICollectionViewCell>:
     NSObject, UICollectionViewDataSource where Cell: ViewHostableCell, Provider.T == Cell.View.VM {
     
-    let provider: Provider
-    let parentVC: UIViewController
-    let collectionView: UICollectionView
+    public var provider: Provider
+    public var parentVC: UIViewController
+    public var collectionView: UICollectionView
     
-    init(parentVC: UIViewController, collectionView: UICollectionView, provider: Provider) {
+    public init(parentVC: UIViewController, collectionView: UICollectionView, provider: Provider) {
         self.parentVC = parentVC
         self.collectionView = collectionView
         self.provider = provider

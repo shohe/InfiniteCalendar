@@ -11,45 +11,45 @@ import SwiftUI
 
 open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIView, UICollectionViewDelegate, ICViewFlowLayoutDelegateProvider {
     
-    var collectionView: ICCollectionView!
-    var parentViewController: UIViewController!
-    var layout: ICViewFlowLayout<Settings>!
+    public var collectionView: ICCollectionView!
+    public var parentViewController: UIViewController!
+    public var layout: ICViewFlowLayout<Settings>!
     var dataSource: ICDataSource<View, Cell, Settings>?
-    var initDate: Date = Date() {
+    open var initDate: Date = Date() {
         didSet {
             layout.updateInitDate(initDate)
             dataSource?.updateInitDate(initDate)
         }
     }
-    var settings: Settings = Settings() {
+    open var settings: Settings = Settings() {
         didSet {
             layout.updateSettings(settings)
             dataSource?.updateSettings(settings)
         }
     }
     
-    var vibrateFeedback: UIImpactFeedbackGenerator?
+    public var vibrateFeedback: UIImpactFeedbackGenerator?
     
     public private (set) var allDayEvents = [Date: [View.VM]]()
     public private (set) var events = [Date: [View.VM]]()
     public private (set) var currentDate: Date = Date()
     
-    private let preparePages: Int = 15
+    public let preparePages: Int = 15
     private var currentDateWorkItem: DispatchWorkItem?
-    private var allDayHeaderWorkItem: DispatchWorkItem?
+    public var allDayHeaderWorkItem: DispatchWorkItem?
     
     public weak var delegate: ICBaseViewDelegate<View,Cell,Settings>?
-    private var delegateForLayout: ICViewFlowLayoutDelegate<Settings> {
+    public var delegateForLayout: ICViewFlowLayoutDelegate<Settings> {
         return ICViewFlowLayoutDelegate(self)
     }
     
-    var contentViewWidth: CGFloat {
+    public var contentViewWidth: CGFloat {
         return frame.width - layout.timeHeaderWidth - layout.contentsMargin.left - layout.contentsMargin.right
     }
     
     
     // Params for Scroll ---
-    var scrollDirection: ScrollDirection?
+    public var scrollDirection: ScrollDirection?
     
     var contentOffsetRange: ClosedRange<CGFloat> {
         let maxContentOffsetY: CGFloat =
@@ -60,9 +60,9 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     }
     
     /// Use for section pagination
-    private typealias Velocity = CGPoint
-    private typealias DestinationOffset = (CGPoint, Velocity)
-    private var destinationOffset: DestinationOffset?
+    public typealias Velocity = CGPoint
+    public typealias DestinationOffset = (CGPoint, Velocity)
+    public var destinationOffset: DestinationOffset?
     private var maxVerticalScrollRange: ClosedRange<CGFloat> {
         return -layout.allDayHeaderHeight...layout.maxSectionHeight - layout.allDayHeaderHeight - collectionView.frame.height
     }
@@ -117,7 +117,6 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         parentViewController = parentVC
         
         layout = ICViewFlowLayout(settings: settings, delegate: delegateForLayout)
-        //layout.delegate = delegateForLayout
         
         collectionView = ICCollectionView(frame: bounds, collectionViewLayout: layout)
         collectionView.delegate = self
@@ -218,7 +217,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     /// - Parameters:
     ///     - numOfDays: Number of days in a page
     ///     - settings: Default settings
-    public func setupCalendar(events: [View.VM], settings: Settings) {
+    open func setupCalendar(events: [View.VM], settings: Settings) {
         setupEvents(events)
         self.settings = settings
         initDate = initDateForCollectionView(settings.initDate)
@@ -350,7 +349,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         endOfScroll()
     }
     
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    open func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollDirection == nil { scrollDirection = getBegginDraggingScrollDirection() }
         
         switch scrollDirection?.direction {
@@ -381,6 +380,34 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     
     public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         // If needed implement
+    }
+    
+    open func resetInitialDate(_ pagingDirection: PagingDirection.Direction) {
+        switch pagingDirection {
+        case .next:
+            let additionalDate = settings.numOfDays*Int(preparePages/2)
+            initDate = initDate.add(component: .day, value: additionalDate)
+        case .previous:
+            let additionalDate = -settings.numOfDays*Int(preparePages/2)
+            initDate = initDate.add(component: .day, value: additionalDate)
+        case .stay: break
+        }
+        
+        updateAllDayBar(isScrolling: false, isExpended: dataSource?.isAllHeaderExpended ?? false)
+        layout.invalidateLayoutCache()
+        collectionView.reloadData()
+    }
+    
+    open func setupEvents(_ newEvents: [View.VM]) {
+        allDayEvents.removeAll()
+        events.removeAll()
+        
+        for (date, items) in ICViewHelper.getIntraEventsByDate(events: newEvents) {
+            allDayEvents[date] = items.filter({$0.isAllDay})
+            events[date] = items.filter({!$0.isAllDay})
+        }
+        
+        dataSource?.updateEvents(events)
     }
     
     
@@ -423,7 +450,7 @@ extension ICBaseView {
         return setDate.startOfDay.add(component: .day, value: -diff)
     }
     
-    private func initDateForCollectionView(_ date: Date) -> Date {
+    public func initDateForCollectionView(_ date: Date) -> Date {
         var _date = date
         if settings.numOfDays == 7 {
             _date = getFirstDayOfWeek(setDate: settings.initDate, firstDayOfWeek: .Sunday)
@@ -460,18 +487,6 @@ extension ICBaseView {
     
     private func getDateForSection(_ section: Int) -> Date {
         return Calendar.current.date(byAdding: .day, value: section, to: initDate)!
-    }
-    
-    private func setupEvents(_ newEvents: [View.VM]) {
-        allDayEvents.removeAll()
-        events.removeAll()
-        
-        for (date, items) in ICViewHelper.getIntraEventsByDate(events: newEvents) {
-            allDayEvents[date] = items.filter({$0.isAllDay})
-            events[date] = items.filter({!$0.isAllDay})
-        }
-        
-        dataSource?.updateEvents(events)
     }
     
     
@@ -561,22 +576,6 @@ extension ICBaseView {
         return CGPoint(x: middlePageOffsetX, y: scrollView.contentOffset.y)
     }
     
-    public func resetInitialDate(_ pagingDirection: PagingDirection.Direction) {
-        switch pagingDirection {
-        case .next:
-            let additionalDate = settings.numOfDays*Int(preparePages/2)
-            initDate = initDate.add(component: .day, value: additionalDate)
-        case .previous:
-            let additionalDate = -settings.numOfDays*Int(preparePages/2)
-            initDate = initDate.add(component: .day, value: additionalDate)
-        case .stay: break
-        }
-        
-        updateAllDayBar(isScrolling: false, isExpended: dataSource?.isAllHeaderExpended ?? false)
-        layout.invalidateLayoutCache()
-        collectionView.reloadData()
-    }
-    
     /// Notice: A temporary solution to fix the scroll from bottom issue when isScrolling
     /// The issue is because the decreased height value will cause the system to change the collectionView contentOffset, but the affected contentOffset will
     /// greater than the contentSize height, and the view will show some abnormal updates, this value will be used with isScrolling to check whether the in scroling change will be applied
@@ -587,11 +586,11 @@ extension ICBaseView {
 
 // MARK: - ICDataSourceDelegate
 extension ICBaseView: ICDataSourceDelegate {
-    func didUpdateAllDayHeader(view: UICollectionReusableView, kind: String, isExpanded: Bool) {
+    public func didUpdateAllDayHeader(view: UICollectionReusableView, kind: String, isExpanded: Bool) {
         updateAllDayBar(isScrolling: false, isExpended: isExpanded)
     }
     
-    func didSelectAllDayItem(date: Date, at indexPath: IndexPath) {
+    public func didSelectAllDayItem(date: Date, at indexPath: IndexPath) {
         let date = layout.date(forDateHeaderAt: indexPath)
         guard let events = allDayEvents[date], events.count > indexPath.row else { return }
         delegate?.didSelectItem(events[indexPath.row])
