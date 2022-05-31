@@ -382,6 +382,32 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         // If needed implement
     }
     
+    public func getBegginDraggingScrollDirection() -> ScrollDirection? {
+        let velocity = collectionView.panGestureRecognizer.velocity(in: collectionView)
+        
+        // When velocity is .zero, return same value as current scrollDirection
+        if velocity == .zero {
+            return scrollDirection
+        } else if abs(velocity.x) >= abs(velocity.y) {
+            var offsetY: CGFloat = collectionView.contentOffset.y
+            if maxVerticalScrollRange.lowerBound > offsetY {
+                offsetY = maxVerticalScrollRange.lowerBound
+            } else if maxVerticalScrollRange.upperBound < offsetY {
+                offsetY = maxVerticalScrollRange.upperBound
+            }
+            return ScrollDirection(direction: .horizontal, lockedAt: offsetY)
+        } else {
+            let offsetX: CGFloat = getNearestDestinationOffset(collectionView).0.x
+            return ScrollDirection(direction: .vertical, lockedAt: offsetX)
+        }
+    }
+    
+    public func getScrollableRange() -> ClosedRange<CGFloat> {
+        let rightUpdateOffsetX = (contentViewWidth * CGFloat(preparePages-1)) - (contentViewWidth / 2)
+        let leftUpdateOffsetX = contentViewWidth / 2
+        return leftUpdateOffsetX...rightUpdateOffsetX
+    }
+    
     open func resetInitialDate(_ pagingDirection: PagingDirection.Direction) {
         switch pagingDirection {
         case .next:
@@ -492,26 +518,6 @@ extension ICBaseView {
     
     
     // MARK: Pagenation logic
-    private func getBegginDraggingScrollDirection() -> ScrollDirection? {
-        let velocity = collectionView.panGestureRecognizer.velocity(in: collectionView)
-        
-        // When velocity is .zero, return same value as current scrollDirection
-        if velocity == .zero {
-            return scrollDirection
-        } else if abs(velocity.x) >= abs(velocity.y) {
-            var offsetY: CGFloat = collectionView.contentOffset.y
-            if maxVerticalScrollRange.lowerBound > offsetY {
-                offsetY = maxVerticalScrollRange.lowerBound
-            } else if maxVerticalScrollRange.upperBound < offsetY {
-                offsetY = maxVerticalScrollRange.upperBound
-            }
-            return ScrollDirection(direction: .horizontal, lockedAt: offsetY)
-        } else {
-            let offsetX: CGFloat = getNearestDestinationOffset(collectionView).0.x
-            return ScrollDirection(direction: .vertical, lockedAt: offsetX)
-        }
-    }
-    
     private func getNearestDestinationOffset(_ scrollView: UIScrollView, velocity: CGPoint = .zero, destinationOffset: CGPoint? = nil) -> DestinationOffset {
         // When scroll type is .pageScroll, destination date is next date
         var destinationX: CGFloat = (scrollType == .pageScroll) ? scrollView.contentOffset.x : (destinationOffset?.x ?? scrollView.contentOffset.x)
@@ -547,12 +553,6 @@ extension ICBaseView {
         
         let pointee = CGPoint(x: destinationX, y: scrollView.contentOffset.y)
         return (pointee, velocity)
-    }
-    
-    private func getScrollableRange() -> ClosedRange<CGFloat> {
-        let rightUpdateOffsetX = (contentViewWidth * CGFloat(preparePages-1)) - (contentViewWidth / 2)
-        let leftUpdateOffsetX = contentViewWidth / 2
-        return leftUpdateOffsetX...rightUpdateOffsetX
     }
     
     /**
