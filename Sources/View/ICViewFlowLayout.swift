@@ -35,6 +35,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         let height = hourHeight * 24
         return height + contentsMargin.top + contentsMargin.bottom + dateHeaderHeight + allDayHeaderHeight
     }
+    open var minimumHeight: CGFloat { return (hourHeight ?? defaultHourHeight) / 2 }
     
     let minOverlayZ = 1000  // Allows for 900 items in a section without z overlap issues
     let minCellZ = 100      // Allows for 100 items in a section's background
@@ -341,7 +342,6 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     /// The point resize by is must be point for CollectionView.
     open func rect(forResizeBy point: CGPoint, forEditView targetView: UIView, withBaseRect rect: CGRect) -> CGRect {
         let viewLocation: CGPoint = rect.origin
-        let minHeight: CGFloat = hourHeight/2
         
         // Check scroll direction, set base point
         // Position is out of longTapView frame and position.y is upper than view's maxY
@@ -350,11 +350,11 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         
         let basePoint: CGPoint = CGPoint(
             x: viewLocation.x,
-            y: isScrollToTop ? viewLocation.y + minHeight : viewLocation.y
+            y: isScrollToTop ? viewLocation.y + minimumHeight : viewLocation.y
         )
         
         let height: CGFloat = abs(basePoint.y - point.y)
-        let size: CGSize = CGSize(width: targetView.frame.width, height: max(minHeight,height))
+        let size: CGSize = CGSize(width: targetView.frame.width, height: max(minimumHeight,height))
         let origin: CGPoint = CGPoint(
             x: targetView.frame.origin.x,
             y: isScrollToTop ? point.y : basePoint.y
@@ -369,7 +369,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         let secondDiff: Int = abs(Date.timeBetween(start: start, end: end, ignoreDate: false))
         let height: CGFloat = (minuteHeight / 60) * CGFloat(secondDiff)
         let horizontalMargin: CGFloat = contentsMargin.left + contentsMargin.right + defaultGridThickness*2
-        return CGSize(width: sectionWidth - horizontalMargin, height: height)
+        return CGSize(width: sectionWidth - horizontalMargin, height: max(height, minimumHeight))
     }
     
     
@@ -629,16 +629,11 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
             )
         default:
             let startTime = date(forTimeHeaderAt: indexPath(forHighlightAt: rect.origin))
-            let difference: DateComponents = Calendar.current.dateComponents([.day, .hour, .minute, .second], from: originStart, to: originEnd!)
+            let distance = abs(originStart.distance(to: originEnd ?? Date()))
             
             return (
                 base.set(hour: startTime.hour, minute: startTime.minute),
-                base.set(
-                    day: base.day + (difference.day ?? 0),
-                    hour: startTime.hour + (difference.hour ?? 0),
-                    minute: startTime.minute + (difference.minute ?? 0),
-                    second: startTime.second + (difference.second ?? 0)
-                )
+                base.set(hour: startTime.hour, minute: startTime.minute).addingTimeInterval(TimeInterval(distance))
             )
         }
     }

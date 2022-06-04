@@ -14,26 +14,26 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
     
     public typealias HightlightIndex = (IndexPath?, IndexPath?)
     
-    private struct CurrentEditingCellInfo {
-        var viewModel: View.VM!
-        var cellRect: CGRect!
-        var indexPath: IndexPath!
-        var tapPosition: CGPoint? // Tap position on EditingView
-        var allOpacityContentViews = [UIView]()
-        var highlightPath: HightlightIndex?
+    public struct CurrentEditingCellInfo {
+        public var viewModel: View.VM!
+        public var cellRect: CGRect!
+        public var indexPath: IndexPath!
+        public var tapPosition: CGPoint? // Tap position on EditingView
+        public var allOpacityContentViews = [UIView]()
+        public var highlightPath: HightlightIndex?
     }
     
     /// When moving the longTap view, if it causes the collectionView scrolling
-    private var isScrolling: Bool = false
-    private var isLongTapping: Bool = false
-    private var currentLongTapType: LongTapType?
-    private var longTapView: UIView?
-    private var currentEditingCellInfo: CurrentEditingCellInfo?
+    public var isScrolling: Bool = false
+    public var isLongTapping: Bool = false
+    public var currentLongTapType: LongTapType?
+    public var longTapView: UIView?
+    public var currentEditingCellInfo: CurrentEditingCellInfo?
     
     /// AutoScroll
-    private var autoScrollTimer: Timer?
-    private var currentAutoScrollDirection: ScrollDirection?
-    private let autoScrollSpeedRange = (0.5...4.0) // by 0.01 sec
+    public var autoScrollTimer: Timer?
+    public var currentAutoScrollDirection: ScrollDirection?
+    public let autoScrollSpeedRange = (0.5...4.0) // by 0.01 sec
     
     public weak var delegateForLongTap: ICViewDelegate<View,Cell,Settings>?
     
@@ -66,12 +66,18 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
     
     open func initLongTapView(selectedCell: Cell?, type: LongTapType, startDate: Date) -> UIView {
         var vm = View.VM.create(from: selectedCell?.viewModel, state: type == .addNew ? .resizing : .moving)
-        vm.startDate = startDate
-        vm.intraStartDate = startDate
+        
+        if type == .addNew {
+            vm.startDate = startDate
+            vm.intraStartDate = startDate
+        }
         currentEditingCellInfo?.viewModel = vm
         
         let new = Cell()
         new.frame = CGRect(origin: .zero, size: CGSize(width: layout.sectionWidth, height: layout.hourHeight))
+        if let selectedCell = selectedCell {
+            new.frame.size = selectedCell.frame.size
+        }
         new.configure(parentVC: nil, viewModel: vm)
         
         return new
@@ -95,7 +101,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         } completion: { _ in }
     }
     
-    // MARK: - Private
+    // MARK: - Gesture
     private func setupGestures() {
         let longTapGesture = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongTapGesture(_:)))
         longTapGesture.delegate = self
@@ -156,7 +162,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         }
     }
     
-    private func handleLongTapBegan(_ movingCell: Cell?, gesture: UILongPressGestureRecognizer) {
+    open func handleLongTapBegan(_ movingCell: Cell?, gesture: UILongPressGestureRecognizer) {
         guard currentEditingCellInfo != nil else { return }
         let point = gesture.location(in: collectionView)
         
@@ -275,7 +281,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         delegateForLongTap?.icView(self, didCancel: info.viewModel, startAt: dateRange.startDate, endAt: dateRange.endDate)
     }
     
-    private func handleLongTapEnded() {
+    open func handleLongTapEnded() {
         autoScrollTimer?.invalidate()
         currentAutoScrollDirection = nil
         
@@ -287,8 +293,10 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
                                              originEnd: info.viewModel.endDate)
         info.viewModel.startDate = dateRange.startDate
         info.viewModel.endDate = dateRange.endDate
+        
+        let isSmallerThan30Min = dateRange.startDate.distance(to: dateRange.endDate) < TimeInterval(30*60)
         info.viewModel.intraStartDate = dateRange.startDate
-        info.viewModel.intraEndDate = dateRange.endDate
+        info.viewModel.intraEndDate = isSmallerThan30Min ? dateRange.startDate.addingTimeInterval(TimeInterval(30*60)) : dateRange.endDate
         info.viewModel.editState = nil
         
         switch currentLongTapType {
@@ -318,7 +326,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         }
     }
     
-    private func getCuurrentMovingCells() -> [UICollectionViewCell] {
+    public func getCuurrentMovingCells() -> [UICollectionViewCell] {
         var movingCells = [UICollectionViewCell]()
         for cell in collectionView.visibleCells {
             if isOriginalMovingCell(cell) {
@@ -328,7 +336,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         return movingCells
     }
     
-    private func updateEditingViewRect(gesture: UILongPressGestureRecognizer) {
+    public func updateEditingViewRect(gesture: UILongPressGestureRecognizer) {
         guard let info = currentEditingCellInfo, let editingView = longTapView, info.cellRect != nil else { return }
         longTapView?.frame = layout.rect(
             forResizeBy: gesture.location(in: collectionView),
@@ -337,7 +345,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         )
     }
     
-    private func autoScroll(gesture: UILongPressGestureRecognizer) {
+    open func autoScroll(gesture: UILongPressGestureRecognizer) {
         guard let tapView = longTapView else { return }
         
         let minOffsetY: CGFloat = -layout.allDayHeaderHeight
@@ -362,6 +370,9 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
             }
             
         case .left, .right:
+            // Ignore when its not move type
+            guard currentLongTapType == .move else { return }
+            
             if let interval = currentAutoScrollDirection?.interval, CGFloat(interval).truncatingRemainder(dividingBy: 100) == 0 {
                 let collectionPoint = gesture.location(in: collectionView)
                 let selfPoint = gesture.location(in: self)
@@ -412,7 +423,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
     ///               ↓
     ///              30%
     /// ```
-    private func autoScrollDirection(gesture: UILongPressGestureRecognizer) -> ScrollDirection {
+    public func autoScrollDirection(gesture: UILongPressGestureRecognizer) -> ScrollDirection {
         // 30%, 15%, 30%, 7%
         let startScrollInsets: UIEdgeInsets = UIEdgeInsets(top: 0.3, left: 0.15, bottom: 0.3, right: 0.07)
         

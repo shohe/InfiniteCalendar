@@ -68,8 +68,8 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     }
     
     /// Use for page pagination
-    var scrollType: ScrollType { return settings.scrollType }
-    var pageWidth: CGFloat {
+    public var scrollType: ScrollType { return settings.scrollType }
+    public var pageWidth: CGFloat {
         return (scrollType == .sectionScroll) ? layout.sectionWidth : contentViewWidth
     }
     private var currentTappedPage: Int?
