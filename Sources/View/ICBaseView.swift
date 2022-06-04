@@ -272,7 +272,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         endOfScroll()
     }
     
-    public func registerViewClasses() {
+    open func registerViewClasses() {
         // supplementary
         collectionView.registerSupplementaryViews([
             Settings.TimeHeader.self,
