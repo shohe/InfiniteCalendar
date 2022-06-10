@@ -30,9 +30,9 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     
     public var vibrateFeedback: UIImpactFeedbackGenerator?
     
-    public private (set) var allDayEvents = [Date: [View.VM]]()
-    public private (set) var events = [Date: [View.VM]]()
-    public private (set) var currentDate: Date = Date()
+    public var allDayEvents = [Date: [View.VM]]()
+    public var events = [Date: [View.VM]]()
+    public var currentDate: Date = Date()
     
     public let preparePages: Int = 15
     private var currentDateWorkItem: DispatchWorkItem?

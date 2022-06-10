@@ -16,7 +16,7 @@ open class ViewHostingCell<T: CellableView>: UICollectionViewCell, ViewHostableC
         return host.rootView
     }
     
-    private let host: UIHostingController<T?> = UIHostingController<T?>(rootView: nil)
+    public let host: UIHostingController<T?> = UIHostingController<T?>(rootView: nil)
     
     
     public override init(frame: CGRect) {
@@ -31,7 +31,7 @@ open class ViewHostingCell<T: CellableView>: UICollectionViewCell, ViewHostableC
         fatalError("init(coder:) has not been implemented")
     }
     
-    public func configure(parentVC: UIViewController?, viewModel: T.VM) {
+    open func configure(parentVC: UIViewController?, viewModel: T.VM) {
         self.viewModel = viewModel
         host.rootView = T(viewModel)
         host.view.invalidateIntrinsicContentSize()

@@ -37,9 +37,9 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     }
     open var minimumHeight: CGFloat { return (hourHeight ?? defaultHourHeight) / 2 }
     
-    let minOverlayZ = 1000  // Allows for 900 items in a section without z overlap issues
-    let minCellZ = 100      // Allows for 100 items in a section's background
-    let minBackgroundZ = 0
+    public let minOverlayZ = 1000  // Allows for 900 items in a section without z overlap issues
+    public let minCellZ = 100      // Allows for 100 items in a section's background
+    public let minBackgroundZ = 0
     
     // Attributes
     public typealias AttDic = [IndexPath: UICollectionViewLayoutAttributes]
@@ -374,6 +374,11 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     
     // MARK: - Layout
+    open func minuteTick() {
+        cachedCurrentTimeComponents.removeAll()
+        invalidateLayout()
+    }
+    
     /**
      Setup method for dateHeaderView
      
@@ -802,11 +807,6 @@ extension ICViewFlowLayout {
                 self?.minuteTick()
             })
         }
-    }
-    
-    public func minuteTick() {
-        cachedCurrentTimeComponents.removeAll()
-        invalidateLayout()
     }
     
     /// Group all the overlap items depending on the maximum overlap items
