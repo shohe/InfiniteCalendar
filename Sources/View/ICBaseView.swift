@@ -32,7 +32,17 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     
     public var allDayEvents = [Date: [View.VM]]()
     public var events = [Date: [View.VM]]()
-    public var currentDate: Date = Date()
+    public var currentDate: Date = Date() {
+        didSet {
+            dataSource?.currentDisplayDate = currentDate.startOfDay
+            delegate?.didUpdateCurrentDate(currentDate.startOfDay)
+        }
+    }
+    
+    /// If display date on left side, when display type is OneDay
+    public var isHiddenTopDate: Bool {
+        return settings.datePosition == .left && settings.numOfDays == 1
+    }
     
     public let preparePages: Int = 15
     private var currentDateWorkItem: DispatchWorkItem?
@@ -133,8 +143,15 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     
     open func updateAllDayBar(isScrolling: Bool, isExpended: Bool) {
         var maxEventCount: Int = 0
+        var days: [Date] = layout.dates(forInCurrentPage: collectionView, isScrolling: isScrolling)
         
-        layout.dates(forInCurrentPage: collectionView, isScrolling: isScrolling).forEach {
+        // Check include previous page to next page
+        for i in 1...settings.numOfDays {
+            if let firstDay = days.first { days.append(firstDay.add(component: .day, value: -i)) }
+            if let lastDay = days.last { days.append(lastDay.add(component: .day, value: i)) }
+        }
+        
+        days.forEach {
             let count = allDayEvents[$0]?.count ?? 0
             if count > maxEventCount {
                 maxEventCount = count
@@ -147,10 +164,20 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         // Check whether it needs to update the allDayHeaderHeight
         if newAllDayHeader != layout.allDayHeaderHeight {
             layout.allDayHeaderHeight = newAllDayHeader
-            collectionView.contentInset.top = newAllDayHeader
+            collectionView.contentInset.top = isHiddenTopDate ? max(layout.dateHeaderHeight, newAllDayHeader) : newAllDayHeader
             collectionView.contentInset.bottom = layout.contentsMargin.bottom - newAllDayHeader
-            collectionView.verticalScrollIndicatorInsets.top = layout.dateHeaderHeight + newAllDayHeader
+            collectionView.verticalScrollIndicatorInsets.top = isHiddenTopDate ? max(layout.dateHeaderHeight, newAllDayHeader) : layout.dateHeaderHeight + newAllDayHeader
             collectionView.reloadData()
+        }
+    }
+    
+    public func resetCurrentDate() {
+        let middlePage: Int = Int(preparePages/2)
+        let middlePageOffsetX: CGFloat = contentViewWidth*CGFloat(middlePage)
+        let shiftPage = Int((collectionView.contentOffset.x - middlePageOffsetX) / contentViewWidth)
+        let date = initDate.add(component: .day, value: middlePage + shiftPage)
+        if currentDate != date {
+            currentDate = date
         }
     }
     
@@ -337,12 +364,6 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
 
         // Wait 0.3 sec for make sure scroll is done
         guard scrollDirection?.direction == .horizontal else { return }
-        currentDateWorkItem?.cancel()
-        currentDateWorkItem = DispatchWorkItem {
-            self.currentDate = self.layout.date(forCollectionViewAt: self.convert(CGPoint(x: self.layout.timeHeaderWidth, y: scrollView.contentOffset.y), to: scrollView))
-            self.delegate?.didUpdateCurrentDate(self.currentDate)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now()+0.3, execute: currentDateWorkItem!)
     }
     
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
@@ -370,6 +391,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
 
         // TODO: checkScrollableRange()
         updateAllDayBar(isScrolling: true, isExpended: dataSource?.isAllHeaderExpended ?? false)
+        resetCurrentDate()
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class ICViewColors {
+public class ICViewColors {
     static var dateHeaderWeekday: UIColor { return .darkGray }
     static var dateHeaderDay: UIColor { return .black }
     static var today: UIColor { return .blue }
@@ -18,6 +18,10 @@ class ICViewColors {
     static var currentTimeline: UIColor { return .black }
 }
 
-class ICViewUI {
-    static var allDayItemHeight: CGFloat { return 28.0 }
+public class ICViewUI {
+    public static var allDayItemHeight: CGFloat { return 28.0 }
+    
+    public enum DatePosition {
+        case top, left
+    }
 }

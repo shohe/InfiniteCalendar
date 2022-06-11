@@ -38,6 +38,7 @@ public protocol ICSettings: ObservableObject {
     var moveTimeMinInterval: Int { get set }
     var timeRange: (startTime: Int, endTime: Int) { get set }
     var withVibrateFeedback: Bool { get set }
+    var datePosition: ICViewUI.DatePosition { get set }
     
     /* TODO: for future
      var viewType: ViewType
@@ -59,6 +60,7 @@ open class ICViewSettings: ICSettings {
     @Published public var moveTimeMinInterval: Int = 15
     @Published public var timeRange: (startTime: Int, endTime: Int) = (1, 23)
     @Published public var withVibrateFeedback: Bool = true
+    @Published public var datePosition: ICViewUI.DatePosition = .left
     
     required public init() { }
 }

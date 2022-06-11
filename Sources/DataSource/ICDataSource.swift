@@ -23,9 +23,15 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
     
     public var isAllHeaderExpended: Bool = false
     public var vibrateFeedback: UIImpactFeedbackGenerator?
+    public var currentDisplayDate: Date = Date().startOfDay
     
     private var currentInitDate: Date!
     private var currentSettings: Settings!
+    
+    /// If display date on left side, when display type is OneDay
+    private var isHiddenTopDate: Bool {
+        return currentSettings.datePosition == .left && currentSettings.numOfDays == 1
+    }
     
     weak var delegate: ICDataSourceDelegate?
     
@@ -110,6 +116,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
                 let date = provider.layout.date(forTimeHeaderAt: indexPath)
                 let item = ICDateHeaderItem(date: date)
                 dateHeader.configure(parentVC: parentVC, item: item)
+                dateHeader.isHidden = (isHiddenTopDate && currentDisplayDate != date)
                 view = dateHeader
             }
         case Settings.DateCorner.className:

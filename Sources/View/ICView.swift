@@ -43,7 +43,9 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
     
     public var movingCellOpacity: Float = 0.6
     
-    open var longTapTopMarginY: CGFloat { return layout.dateHeaderHeight + layout.allDayHeaderHeight }
+    open var longTapTopMarginY: CGFloat {
+        return layout.allDayHeaderHeight + (isHiddenTopDate ? 0 : layout.dateHeaderHeight)
+    }
     open var longTapBottomMarginY: CGFloat { return frame.height }
     open var longTapLeftMarginX: CGFloat { return layout.timeHeaderWidth }
     open var longTapRightMarginX: CGFloat { return frame.width }
@@ -110,7 +112,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
     
     private func checkLongTapPosition(gesture: UILongPressGestureRecognizer) -> Bool {
         let location = gesture.location(in: self)
-        let isTapDateHeader = location.y <= (layout.dateHeaderHeight + layout.allDayHeaderHeight)
+        let isTapDateHeader = location.y <= longTapTopMarginY
         let isTapTimeHeader = location.x <= (layout.timeHeaderWidth + layout.contentsMargin.left)
         return !isTapDateHeader && !isTapTimeHeader
     }
@@ -195,7 +197,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
             currentEditingCellInfo?.tapPosition = tapPoint
             
             // To display whole cell view, if cell was coverd by header
-            let minY: CGFloat = collectionView.contentOffset.y + layout.allDayHeaderHeight + layout.dateHeaderHeight
+            let minY: CGFloat = collectionView.contentOffset.y + longTapTopMarginY
             if currentEditingCellInfo!.cellRect.minY < minY {
                 collectionView.contentOffset = CGPoint(
                     x: collectionView.contentOffset.x,
@@ -428,12 +430,11 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         let startScrollInsets: UIEdgeInsets = UIEdgeInsets(top: 0.3, left: 0.15, bottom: 0.3, right: 0.07)
         
         let position = gesture.location(in: self)
-        let minY = layout.allDayHeaderHeight + layout.dateHeaderHeight
         let maxY = collectionView.visibleSize.height
-        let maxHeight: CGFloat = maxY - minY
+        let maxHeight: CGFloat = maxY - longTapTopMarginY
         
         let positionInsets: UIEdgeInsets = UIEdgeInsets(
-            top: (position.y - minY) / maxHeight,
+            top: (position.y - longTapTopMarginY) / maxHeight,
             left: position.x / collectionView.frame.width,
             bottom: (maxY - position.y) / maxHeight,
             right: (collectionView.frame.width - position.x) / collectionView.frame.width
