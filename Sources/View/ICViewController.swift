@@ -12,6 +12,9 @@ open class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Set
     public var calendarView: ICView<View,Cell,Settings>!
     public var currentNumOfDays: Int = 0
     
+    private var isUpdated: Bool = false
+    private var updateWorkItem: DispatchWorkItem?
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
     }
@@ -42,6 +45,16 @@ open class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Set
     }
     
     public func updateCalendar(events: [View.VM], settings: Settings, didTapToday: Bool) {
+        if isUpdated {
+            updateWorkItem?.cancel()
+            updateWorkItem = DispatchWorkItem { self.isUpdated = false }
+            DispatchQueue.main.asyncAfter(deadline: .now()+0.1, execute: updateWorkItem!)
+            return
+        } else {
+            isUpdated = true
+        }
+        
+        
         let isUpdateNumOfDays: Bool = (currentNumOfDays != settings.numOfDays)
         
         calendarView.updateEvents(events)
