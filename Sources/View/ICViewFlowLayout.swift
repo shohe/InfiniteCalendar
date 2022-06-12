@@ -167,8 +167,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         guard let cv = collectionView, cv.numberOfSections != 0 else { return }
         var attributes = UICollectionViewLayoutAttributes()
         let contentMinX = timeHeaderWidth + contentsMargin.left
-        let contentMinY = contentsMargin.top + (isHiddenTopDate ? 0 : max(dateHeaderHeight, allDayHeaderHeight))
-        
+        let contentMinY = contentsMargin.top + (isHiddenTopDate ? 0 : dateHeaderHeight)
         layoutTimeHeaderAttributes(collectionView: cv, attributes: &attributes)
         
         // reset DateHeader with verticalGridLine
@@ -181,8 +180,9 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     open func zIndexForElementKind(_ kind: String) -> Int {
         switch kind {
-        case Settings.DateCorner.className,
-            Settings.AllDayCorner.className:
+        case Settings.AllDayCorner.className:
+            return minOverlayZ + 11
+        case Settings.DateCorner.className:
             return minOverlayZ + 10
         case Settings.AllDayHeader.className:
             return minOverlayZ + 9
@@ -295,7 +295,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     open func point(forMoveTo point: CGPoint, pointInView targetPoint: CGPoint, withSection section: Int) -> CGPoint {
         return CGPoint(
             x: rect(forSection: section).minX + defaultGridThickness + contentsMargin.left,
-            y: max(max(point.y - targetPoint.y, dateHeaderHeight), CGFloat(collectionView?.contentOffset.y ?? 0) + dateHeaderHeight + allDayHeaderHeight)
+            y: max(max(point.y - targetPoint.y, dateHeaderHeight), CGFloat(collectionView?.contentOffset.y ?? 0) + (isHiddenTopDate ? 0 : dateHeaderHeight) + allDayHeaderHeight)
         )
     }
     
@@ -316,7 +316,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     // isLast: firstTime and lastTime are both 00:00. For distinguish which 00:00 is for lastTime.
     open func rect(_ collectionView: UICollectionView, forTimeHeaderAt date: Date, isLast: Bool) -> CGRect {
         let timeHeaderHeight: CGFloat = hourHeight / CGFloat(60/moveTimeInterval)
-        let calendarMinY = (isHiddenTopDate ? 0 : max(dateHeaderHeight, allDayHeaderHeight)) + contentsMargin.top - (timeHeaderHeight / 2.0)
+        let calendarMinY = (isHiddenTopDate ? 0 : dateHeaderHeight) + contentsMargin.top - (timeHeaderHeight / 2.0)
         let headerMinX = fmax(collectionView.contentOffset.x, 0)
         
         let hourY = calendarMinY + (CGFloat(isLast ? 24 : date.hour)*hourHeight)
@@ -394,7 +394,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
      */
     open func layoutDateHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let calendarMinX = timeHeaderWidth + contentsMargin.left
-        let calendarGridMinY = dateHeaderHeight + contentsMargin.top
+        let calendarGridMinY = contentsMargin.top + (isHiddenTopDate ? 0 : dateHeaderHeight)
         let dateHeaderMinY = isStickeyDateHeader ? collectionView.contentOffset.y : fmax(collectionView.contentOffset.y, 0.0)
         
         sectionIndexes.enumerate(_:) { (section, _) in
@@ -493,7 +493,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     open func layoutCurrentTimelineAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let calendarMinX = timeHeaderWidth + contentsMargin.left
-        let contentMinY = contentsMargin.top + (isHiddenTopDate ? 0 : max(dateHeaderHeight, allDayHeaderHeight))
+        let contentMinY = contentsMargin.top + (isHiddenTopDate ? 0 : dateHeaderHeight)
         
         sectionIndexes.enumerate(_:) { (section, _) in
             let sectionMinX = calendarMinX + sectionWidth * CGFloat(section)
@@ -508,36 +508,36 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     open func layoutCornerHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         (attributes, cornerHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.DateCorner.className, withItemCache: cornerHeaderAttributes)
-        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: dateHeaderHeight))
+        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : dateHeaderHeight))
         attributes.zIndex = zIndexForElementKind(Settings.DateCorner.className)
     }
     
     open func layoutAllDayHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let calendarContentMinX = timeHeaderWidth + contentsMargin.left
-        let headerMinY = isStickeyDateHeader ? collectionView.contentOffset.y : fmax(collectionView.contentOffset.y, 0.0)
-        
+        let headerMinY = collectionView.contentOffset.y + (isHiddenTopDate ? 0 : dateHeaderHeight)
         sectionIndexes.enumerate(_:) { (section, _) in
             let sectionMinX = calendarContentMinX + sectionWidth * CGFloat(section)
-            var sectionMinY = isHiddenTopDate ? headerMinY : collectionView.contentOffset.y + dateHeaderHeight
-            if allDayHeaderHeight < dateHeaderHeight {
-                sectionMinY += dateHeaderHeight - allDayHeaderHeight
-            }
             
             (attributes, allDayHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.AllDayHeader.className, withItemCache: allDayHeaderAttributes)
             attributes.frame = CGRect(
                 x: sectionMinX,
-                y: sectionMinY,
+                y: headerMinY,
                 width: sectionWidth,
                 height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
             )
             attributes.zIndex = zIndexForElementKind(Settings.AllDayHeader.className)
+            
+            // corner
+//            (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
+//            let isDisplayAttribute = !isHiddenTopDate || date(forSection: section) == date(forContentOffset: collectionView.contentOffset)
+//            let shouldAttributeHidden = isHiddenTopDate && !isDisplayAttribute
         }
         
         // background
         (attributes, allDayHeaderBackgroundAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayHeaderBackground.className, withItemCache: allDayHeaderBackgroundAttributes)
         attributes.frame = CGRect(
             x: collectionView.contentOffset.x,
-            y: isHiddenTopDate ? headerMinY : collectionView.contentOffset.y + dateHeaderHeight,
+            y: headerMinY,
             width: collectionViewContentSize.width,
             height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
         )
@@ -547,7 +547,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
         attributes.frame = CGRect(
             x: collectionView.contentOffset.x,
-            y: isHiddenTopDate ? headerMinY : collectionView.contentOffset.y + dateHeaderHeight,
+            y: headerMinY,
             width: timeHeaderWidth,
             height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
         )
@@ -720,13 +720,12 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     /// Get (hour, minute) from point.X for **gesture point in collectionView only** rather than collectionView contentOffset
     open func time(forCollectionViewPoint point: CGPoint) -> (hour: Int, minute: Int, second: Int) {
-        var adjustedY = point.y - dateHeaderHeight - contentsMargin.top
-        let minY: CGFloat = 0
-        let maxY: CGFloat = collectionView!.contentSize.height - contentsMargin.top - contentsMargin.bottom - dateHeaderHeight - allDayHeaderHeight
-        adjustedY = max(minY, min(adjustedY, maxY))
+        let headerHeight: CGFloat = isHiddenTopDate ? 0 : dateHeaderHeight
+        var adjustedY = point.y - contentsMargin.top - headerHeight
+        let maxY: CGFloat = collectionView!.contentSize.height - contentsMargin.top - contentsMargin.bottom - allDayHeaderHeight - headerHeight
+        adjustedY = max(0, min(adjustedY, maxY))
         let hour = Int(adjustedY / hourHeight)
         let minute = Int((adjustedY / hourHeight - CGFloat(hour)) * 60)
-        
         return (hour, minute, 0)
     }
     
@@ -736,7 +735,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         
         switch action {
         case .addNew:
-            // adjust start & end time by same way as hightlight time
+            // adjust start & end time by same way as highlight time
             let startIndex = indexPath(forHighlightAt: rect.origin)
             let endIndex = indexPath(forHighlightAt: CGPoint(x: rect.minX, y: rect.maxY))
             let startTime = date(forTimeHeaderAt: startIndex)
@@ -748,7 +747,6 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         default:
             let startTime = date(forTimeHeaderAt: indexPath(forHighlightAt: rect.origin))
             let distance = abs(originStart.distance(to: originEnd ?? Date()))
-            
             return (
                 base.set(hour: startTime.hour, minute: startTime.minute),
                 base.set(hour: startTime.hour, minute: startTime.minute).addingTimeInterval(TimeInterval(distance))
@@ -788,7 +786,7 @@ extension ICViewFlowLayout {
     /// If set minimum  block height, set specific BlockMinute. Default value is 30min.
     public func point(forStartBlockFrom position: CGPoint, withMinimumBlockMinute minute: Int = 30) -> CGPoint {
         let contentMinX: CGFloat = timeHeaderWidth + contentsMargin.left
-        let contentMinY: CGFloat = dateHeaderHeight + contentsMargin.top + allDayHeaderHeight
+        let contentMinY: CGFloat = (isHiddenTopDate ? 0 : dateHeaderHeight) + contentsMargin.top + allDayHeaderHeight
         
         let size: CGSize = CGSize(width: sectionWidth, height: CGFloat(minute) / 60 * hourHeight)
         

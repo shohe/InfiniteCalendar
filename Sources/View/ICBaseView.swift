@@ -142,13 +142,11 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     
     open func updateAllDayBar(isScrolling: Bool, isExpended: Bool) {
         var maxEventCount: Int = 0
-        var days: [Date] = layout.dates(forInCurrentPage: collectionView, isScrolling: isScrolling)
+        var days: [Date] = layout.dates(forInCurrentPage: collectionView, isScrolling: true)
         
-        // Check include previous page to next page
-        for i in 1...settings.numOfDays {
-            if let firstDay = days.first { days.append(firstDay.add(component: .day, value: -i)) }
-            if let lastDay = days.last { days.append(lastDay.add(component: .day, value: i)) }
-        }
+        // Check include previous date to next date
+        if let firstDay = days.first { days.append(firstDay.add(component: .day, value: -1)) }
+        if let lastDay = days.last { days.append(lastDay.add(component: .day, value: 1)) }
         
         days.forEach {
             let count = allDayEvents[$0]?.count ?? 0
