@@ -91,7 +91,6 @@ public extension ICDefaultComponent {
                     .font(.system(size: 14.0))
                     .padding(.bottom, 7.0)
                     .foregroundColor(Color.black.opacity(0.7))
-                    .opacity(isEnableToggle ? 1 : 0)
             }
             .frame(minHeight: 0)
             .clipped()

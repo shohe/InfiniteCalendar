@@ -28,8 +28,10 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     open var defaultGridThickness: CGFloat { return 1.0 }
     open var defaultCurrentTimelineHeight: CGFloat { return 10.0 }
     open var defaultAllDayOneLineHeight: CGFloat { return ICViewUI.allDayItemHeight }
+    
     /// Margin for flowLayout in collectionView
     open var contentsMargin: UIEdgeInsets { return UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0) }
+    open var allDayContentsMargin: UIEdgeInsets { return UIEdgeInsets(top: 12, left: 0, bottom: 0, right: 0) }
     open var itemMargin: UIEdgeInsets { return UIEdgeInsets(top: 1, left: 0.5, bottom: 1, right: 4.0) }
     open var maxSectionHeight: CGFloat {
         let height = hourHeight * 24
@@ -73,6 +75,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     public var cachedCurrentTimeComponents = [Int: DateComponents]()
     
     var needsToPrepareAttributesForAllSections = true
+    var needsToExpendAllDayHeader = false
     
     // Settings
     private var displayTimeRange: (startTime: Int, endTime: Int) {
@@ -189,7 +192,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         case Settings.AllDayHeaderBackground.className:
             return minOverlayZ + 8
         case Settings.DateHeader.className:
-            return minOverlayZ + (isHiddenTopDate ? 11 : 7)
+            return minOverlayZ + (isHiddenTopDate ? 12 : 7)
         case Settings.DateHeaderBackground.className:
             return minOverlayZ + 6
         case Settings.TimeHeader.className:
@@ -508,7 +511,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     open func layoutCornerHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         (attributes, cornerHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.DateCorner.className, withItemCache: cornerHeaderAttributes)
-        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : dateHeaderHeight))
+        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : dateHeaderHeight + allDayHeaderHeight))
         attributes.zIndex = zIndexForElementKind(Settings.DateCorner.className)
     }
     
@@ -521,16 +524,11 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
             (attributes, allDayHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.AllDayHeader.className, withItemCache: allDayHeaderAttributes)
             attributes.frame = CGRect(
                 x: sectionMinX,
-                y: headerMinY,
+                y: headerMinY + (isHiddenTopDate ? allDayContentsMargin.top : 0),
                 width: sectionWidth,
                 height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
             )
             attributes.zIndex = zIndexForElementKind(Settings.AllDayHeader.className)
-            
-            // corner
-//            (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
-//            let isDisplayAttribute = !isHiddenTopDate || date(forSection: section) == date(forContentOffset: collectionView.contentOffset)
-//            let shouldAttributeHidden = isHiddenTopDate && !isDisplayAttribute
         }
         
         // background
@@ -544,6 +542,19 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         attributes.zIndex = zIndexForElementKind(Settings.AllDayHeaderBackground.className)
         
         // corner
+        (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
+
+        attributes.frame = CGRect(
+            //x: collectionView.contentOffset.x,
+            x: needsToExpendAllDayHeader ? collectionView.contentOffset.x : -timeHeaderWidth,
+            y: headerMinY,
+            width: timeHeaderWidth,
+            height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
+        )
+        attributes.zIndex = zIndexForElementKind(Settings.AllDayCorner.className)
+    }
+    
+    open func layoutAllDayCornerAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes, headerMinY: CGFloat) {
         (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
         attributes.frame = CGRect(
             x: collectionView.contentOffset.x,

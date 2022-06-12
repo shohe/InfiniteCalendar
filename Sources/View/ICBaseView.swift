@@ -144,6 +144,9 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         var maxEventCount: Int = 0
         var days: [Date] = layout.dates(forInCurrentPage: collectionView, isScrolling: true)
         
+        let needsToBeExpendable = days.dropLast().contains(where: { allDayEvents[$0]?.count ?? 0 > 2 })
+        layout.needsToExpendAllDayHeader = needsToBeExpendable
+        
         // Check include previous date to next date
         if let firstDay = days.first { days.append(firstDay.add(component: .day, value: -1)) }
         if let lastDay = days.last { days.append(lastDay.add(component: .day, value: 1)) }
@@ -156,7 +159,8 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         }
         
         let eventCount: Int = isExpended ? maxEventCount : min(maxEventCount, 3)
-        let newAllDayHeader = layout.defaultAllDayOneLineHeight * CGFloat(eventCount)
+        let varticalMargin: CGFloat = isHiddenTopDate ? layout.allDayContentsMargin.top + layout.allDayContentsMargin.bottom : 0
+        let newAllDayHeader = layout.defaultAllDayOneLineHeight * CGFloat(eventCount) + varticalMargin
         
         // Check whether it needs to update the allDayHeaderHeight
         if newAllDayHeader != layout.allDayHeaderHeight {
