@@ -58,7 +58,7 @@ Add it to an existing Xcode project as a package dependency:
    - [timeRange](#timerange)
    - [withVibrateFeedback](#withvibratefeedback)
  - [4. Custom UI components](#4-custom-ui-components)
-   - [Sample custom component (Timeline)](#sample-custom-component-timeline)
+   - [Sample custom component (DateHeader)](#sample-custom-component-dateheader)
 
 
 ### 1. Initialization
@@ -215,6 +215,13 @@ Number of dispaly dates on a screen
 Sample: `numOfDays = 1`, `numOfDays = 3`, `numOfDays = 7`
 <img align="center" width="100%" height="auto" src="https://github.com/shohe/InfiniteCalendar/raw/media/Assets/num-of-days.png"/>
 
+#### datePosition
+The display position of Date **only for One-day layout**.
+
+Sample: `datePosition = .top`, `datePosition = .left`
+<img align="center" width="100%" height="auto" src="https://github.com/shohe/InfiniteCalendar/raw/media/Assets/date-position.png"/>
+
+
 #### initDate
 The display date for lounch app
 
@@ -300,7 +307,7 @@ associatedtype AllDayHeaderBackground: ICAllDayHeaderBackground<AllDayHeaderBack
 ```
 
 
-#### Sample custom component (Timeline)
+#### Sample custom component (DateHeader)
 
 All you need is 4 steps.
 1. Create CustomView and Cell for wrap the View

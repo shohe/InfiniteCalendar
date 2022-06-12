@@ -9,8 +9,8 @@ import Foundation
 import InfiniteCalendar
 
 class CustomSettings: ICSettings {
-//    typealias DateHeaderView = CustomDateHeaderView
-//    typealias DateHeader = CustomDateHeader
+    typealias DateHeaderView = CustomDateHeaderView
+    typealias DateHeader = CustomDateHeader
     
     @Published public var numOfDays: Int = 1
     @Published public var initDate: Date = Date()
