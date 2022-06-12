@@ -169,7 +169,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
         let section: Int = provider.layout.section(forCollectionViewPoint: cPoint, withPointInSelfView: sPoint)
         let date: Date = provider.layout.date(forSection: section)
         
-        let tapItemPoint: CGFloat = sPoint.y - provider.layout.dateHeaderHeight
+        let tapItemPoint: CGFloat = sPoint.y - (isHiddenTopDate ? 0 : provider.layout.dateHeaderHeight)
         let itemIndex: Int = Int(tapItemPoint / provider.layout.defaultAllDayOneLineHeight)
         
         if let items = provider.allDayEvents[date], items.count > itemIndex {

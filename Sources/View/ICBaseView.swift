@@ -173,10 +173,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     }
     
     public func resetCurrentDate() {
-        let middlePage: Int = Int(preparePages/2)
-        let middlePageOffsetX: CGFloat = contentViewWidth*CGFloat(middlePage)
-        let shiftPage = Int((collectionView.contentOffset.x - middlePageOffsetX) / contentViewWidth)
-        let date = initDate.add(component: .day, value: middlePage + shiftPage)
+        let date = layout.date(forContentOffset: collectionView.contentOffset)
         if currentDate != date {
             currentDate = date
         }
