@@ -33,7 +33,12 @@ struct ContentView: View {
             
             InfiniteCalendar<EventCellView, EventCell, CustomSettings>(events: $events, settings: settings, didTapToday: $didTapToday)
                 .onCurrentDateChanged { date in
-                    currentDate = date
+                    // Don't recommend update date of @Sate variable (if you defined) with date obtained.
+                    // Because, if update @State variable, InfiniteCalendar will start re-rendaring then it will use CPU too much.
+                    if currentDate.month != date.month {
+                        currentDate = date
+                        print("update current month: \(date)")
+                    }
                 }
                 .onItemSelected { item in
                     selectedItem = item

@@ -34,7 +34,6 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     public var events = [Date: [View.VM]]()
     public var currentDate: Date = Date() {
         didSet {
-            dataSource?.currentDisplayDate = currentDate.startOfDay
             delegate?.didUpdateCurrentDate(currentDate.startOfDay)
         }
     }

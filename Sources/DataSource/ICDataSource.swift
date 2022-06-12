@@ -116,7 +116,6 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
                 let date = provider.layout.date(forTimeHeaderAt: indexPath)
                 let item = ICDateHeaderItem(date: date)
                 dateHeader.configure(parentVC: parentVC, item: item)
-                dateHeader.isHidden = (isHiddenTopDate && currentDisplayDate != date)
                 view = dateHeader
             }
         case Settings.DateCorner.className:

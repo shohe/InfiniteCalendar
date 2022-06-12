@@ -400,8 +400,12 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         sectionIndexes.enumerate(_:) { (section, _) in
             let sectionMinX = calendarMinX + sectionWidth * CGFloat(section)
             (attributes, dateHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.DateHeader.className, withItemCache: dateHeaderAttributes)
+            
+            let isDisplayAttribute = !isHiddenTopDate || date(forSection: section) == date(forContentOffset: collectionView.contentOffset)
+            let shouldAttributeHidden = isHiddenTopDate && !isDisplayAttribute
+            
             attributes.frame = CGRect(
-                x: isHiddenTopDate ? collectionView.contentOffset.x : sectionMinX,
+                x: isHiddenTopDate ? shouldAttributeHidden ? -timeHeaderWidth : collectionView.contentOffset.x : sectionMinX,
                 y: dateHeaderMinY,
                 width: isHiddenTopDate ? timeHeaderWidth : sectionWidth,
                 height: dateHeaderHeight
@@ -625,7 +629,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     }
     
     open func date(forContentOffset contentOffset: CGPoint) -> Date {
-        let adjustedX = contentOffset.x - contentsMargin.left
+        let adjustedX = contentOffset.x + sectionWidth/2 - contentsMargin.left
         let section = Int(adjustedX / sectionWidth)
         return date(forSection: section)
     }
@@ -642,17 +646,16 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         }
         
         var startDate = date(forContentOffset: collectionView.contentOffset)
-        // substract 1 to make sure it won't include the next section when reach the boundary
         let contentViewWidth: CGFloat = collectionView.frame.width - timeHeaderWidth - contentsMargin.left - contentsMargin.right
         let endDate = date(forContentOffset: CGPoint(
-            x: collectionView.contentOffset.x + contentViewWidth - 1,
+            x: collectionView.contentOffset.x + contentViewWidth,
             y: collectionView.contentOffset.y
         ))
         repeat {
             dates.append(startDate)
             startDate = startDate.add(component: .day, value: 1)
         } while startDate <= endDate
-
+        
         return dates
     }
     
