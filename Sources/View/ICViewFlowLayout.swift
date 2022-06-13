@@ -75,7 +75,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     public var cachedCurrentTimeComponents = [Int: DateComponents]()
     
     var needsToPrepareAttributesForAllSections = true
-    var needsToExpendAllDayHeader = false
+    public var needsToExpendAllDayHeader = false
     
     // Settings
     private var displayTimeRange: (startTime: Int, endTime: Int) {
@@ -88,7 +88,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     }
     
     /// If display date on left side, when display type is OneDay
-    private var isHiddenTopDate: Bool {
+    public var isHiddenTopDate: Bool {
         return currentSettings.datePosition == .left && currentSettings.numOfDays == 1
     }
     
@@ -296,9 +296,10 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     // MARK: - CGPoint
     /// The point move by is must be point for CollectionView.
     open func point(forMoveTo point: CGPoint, pointInView targetPoint: CGPoint, withSection section: Int) -> CGPoint {
+        let headerHeight: CGFloat = isHiddenTopDate ? 0 : dateHeaderHeight
         return CGPoint(
             x: rect(forSection: section).minX + defaultGridThickness + contentsMargin.left,
-            y: max(max(point.y - targetPoint.y, dateHeaderHeight), CGFloat(collectionView?.contentOffset.y ?? 0) + (isHiddenTopDate ? 0 : dateHeaderHeight) + allDayHeaderHeight)
+            y: max(max(point.y - targetPoint.y, headerHeight), CGFloat(collectionView?.contentOffset.y ?? 0) + headerHeight + allDayHeaderHeight)
         )
     }
     
@@ -518,9 +519,9 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     open func layoutAllDayHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let calendarContentMinX = timeHeaderWidth + contentsMargin.left
         let headerMinY = collectionView.contentOffset.y + (isHiddenTopDate ? 0 : dateHeaderHeight)
+        
         sectionIndexes.enumerate(_:) { (section, _) in
             let sectionMinX = calendarContentMinX + sectionWidth * CGFloat(section)
-            
             (attributes, allDayHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.AllDayHeader.className, withItemCache: allDayHeaderAttributes)
             attributes.frame = CGRect(
                 x: sectionMinX,
@@ -545,7 +546,6 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         (attributes, allDayCornerAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.AllDayCorner.className, withItemCache: allDayCornerAttributes)
 
         attributes.frame = CGRect(
-            //x: collectionView.contentOffset.x,
             x: needsToExpendAllDayHeader ? collectionView.contentOffset.x : -timeHeaderWidth,
             y: headerMinY,
             width: timeHeaderWidth,
