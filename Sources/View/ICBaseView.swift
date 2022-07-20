@@ -73,7 +73,10 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     public typealias DestinationOffset = (CGPoint, Velocity)
     public var destinationOffset: DestinationOffset?
     private var maxVerticalScrollRange: ClosedRange<CGFloat> {
-        return -layout.allDayHeaderHeight...layout.maxSectionHeight - layout.allDayHeaderHeight - collectionView.frame.height
+        let isExpendedAllDayHeader: Bool = layout.allDayHeaderHeight > layout.allDayContentsMargin.top + layout.allDayContentsMargin.bottom
+        let lower: CGFloat = isExpendedAllDayHeader ? -layout.allDayHeaderHeight : -layout.dateHeaderHeight
+        let upper: CGFloat = collectionView.contentSize.height - collectionView.bounds.height + collectionView.contentInset.bottom + 34.0 // I don't know why +34.0 makes just same size as max contentOffset.bottom
+        return lower...upper
     }
     
     /// Use for page pagination
