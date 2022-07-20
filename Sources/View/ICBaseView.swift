@@ -75,7 +75,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     private var maxVerticalScrollRange: ClosedRange<CGFloat> {
         let isExpendedAllDayHeader: Bool = layout.allDayHeaderHeight > layout.allDayContentsMargin.top + layout.allDayContentsMargin.bottom
         let lower: CGFloat = isExpendedAllDayHeader ? -layout.allDayHeaderHeight : -layout.dateHeaderHeight
-        let upper: CGFloat = collectionView.contentSize.height - collectionView.bounds.height + collectionView.contentInset.bottom + 34.0 // I don't know why +34.0 makes just same size as max contentOffset.bottom
+        let upper: CGFloat = collectionView.contentSize.height - collectionView.bounds.height + collectionView.contentInset.bottom + safeAreaInsets.bottom
         return lower...upper
     }
     
