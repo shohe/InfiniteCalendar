@@ -248,7 +248,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         currentInitDate = initDate
     }
     
-    public func invalidateLayoutCache() {
+    open func invalidateLayoutCache() {
         needsToPrepareAttributesForAllSections = true
         
         cachedDayDateComponents.removeAll()
