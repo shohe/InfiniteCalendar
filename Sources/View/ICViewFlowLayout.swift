@@ -797,7 +797,7 @@ extension ICViewFlowLayout {
     /// If set minimum  block height, set specific BlockMinute. Default value is 30min.
     public func point(forStartBlockFrom position: CGPoint, withMinimumBlockMinute minute: Int = 30) -> CGPoint {
         let contentMinX: CGFloat = timeHeaderWidth + contentsMargin.left
-        let contentMinY: CGFloat = (isHiddenTopDate ? 0 : dateHeaderHeight) + contentsMargin.top + allDayHeaderHeight
+        let contentMinY: CGFloat = (isHiddenTopDate ? 0 : dateHeaderHeight) + contentsMargin.bottom + allDayHeaderHeight
         
         let size: CGSize = CGSize(width: sectionWidth, height: CGFloat(minute) / 60 * hourHeight)
         
