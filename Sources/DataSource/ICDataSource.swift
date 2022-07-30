@@ -53,7 +53,8 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
         currentInitDate = initDate
     }
     
-    open func updateEvents(_ events: [Date: [View.VM]]) {
+    open func updateEvents(allDayEvents: [Date: [View.VM]], events: [Date: [View.VM]]) {
+        provider.allDayEvents = allDayEvents
         provider.events = events
     }
     

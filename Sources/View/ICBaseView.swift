@@ -456,7 +456,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
             events[date] = items.filter({!$0.isAllDay})
         }
         
-        dataSource?.updateEvents(events)
+        dataSource?.updateEvents(allDayEvents: allDayEvents, events: events)
     }
     
     
