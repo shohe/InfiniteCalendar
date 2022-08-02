@@ -43,6 +43,8 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
     
     public var movingCellOpacity: Float = 0.6
     
+    private var isStartedLongGesture: Bool = false
+    
     open var longTapTopMarginY: CGFloat {
         return layout.allDayHeaderHeight + (isHiddenTopDate ? 0 : layout.dateHeaderHeight)
     }
@@ -114,7 +116,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         let location = gesture.location(in: self)
         let isTapDateHeader = location.y <= longTapTopMarginY
         let isTapTimeHeader = location.x <= (layout.timeHeaderWidth + layout.contentsMargin.left)
-        return !isTapDateHeader && !isTapTimeHeader
+        return (!isTapDateHeader && !isTapTimeHeader) || isStartedLongGesture
     }
     
     @objc private func handleLongTapGesture(_ gestureRecognizer: UILongPressGestureRecognizer) {
@@ -141,12 +143,17 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
         
         switch gestureState {
         case .began:
+            isStartedLongGesture = true
             handleLongTapBegan(currentMovingCell, gesture: gestureRecognizer)
         case .changed:
+            guard isStartedLongGesture else { return }
             handleLongTapChanged(gesture: gestureRecognizer)
         case .cancelled:
+            guard isStartedLongGesture else { return }
             handleLongTapCancelled()
         case .ended:
+            guard isStartedLongGesture else { return }
+            isStartedLongGesture = false
             handleLongTapEnded()
         default: break
         }
