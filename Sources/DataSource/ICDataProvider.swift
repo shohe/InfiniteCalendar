@@ -8,16 +8,16 @@
 import SwiftUI
 
 open class ICDataProvider<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: CollectionDataProvider {
-    public typealias T = View.VM
+    public typealias VM = View.VM
     
     public let layout: ICViewFlowLayout<Settings>
     public let preparePages: Int
     public var settings: Settings
-    public var allDayEvents = [Date: [T]]()
-    public var events = [Date: [T]]()
+    public var allDayEvents = [Date: [VM]]()
+    public var events = [Date: [VM]]()
     
     
-    public init(layout: ICViewFlowLayout<Settings>, allDayEvents: [Date: [T]], events: [Date: [T]], settings: Settings, preparePages: Int) {
+    public init(layout: ICViewFlowLayout<Settings>, allDayEvents: [Date: [VM]], events: [Date: [VM]], settings: Settings, preparePages: Int) {
         self.allDayEvents = allDayEvents
         self.events = events
         self.layout = layout

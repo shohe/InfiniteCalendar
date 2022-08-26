@@ -286,7 +286,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         self.settings = settings
     }
     
-    public func resetCollectionViewOffset(by date: Date, animated: Bool) {
+    open func resetCollectionViewOffset(by date: Date, animated: Bool) {
         guard let sectionWidth = layout.sectionWidth else { return }
         
         initDate = initDateForCollectionView(date)

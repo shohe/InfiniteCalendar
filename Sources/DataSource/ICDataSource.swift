@@ -38,9 +38,9 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
     /// Hightlight
     private var hightlighted: ICView.HightlightIndex?
     
-    
-    override init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
+    public init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
         super.init(parentVC: parentVC, collectionView: collectionView, provider: provider)
+        collectionView.dataSource = self
         currentSettings = provider.settings
     }
     
@@ -101,7 +101,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
     }
     
     // MARK: - UICollectionViewDataSource
-    open override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    open func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         var view = UICollectionReusableView()
         switch kind {
         case Settings.TimeHeader.className:

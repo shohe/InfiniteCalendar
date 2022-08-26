@@ -21,8 +21,6 @@ open class CollectionDataSource<Provider: CollectionDataProvider, Cell: UICollec
         self.collectionView = collectionView
         self.provider = provider
         super.init()
-        
-        collectionView.dataSource = self
     }
     
     
@@ -41,9 +39,5 @@ open class CollectionDataSource<Provider: CollectionDataProvider, Cell: UICollec
         }
         cell.configure(parentVC: parentVC, viewModel: item)
         return cell
-    }
-    
-    open func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        return UICollectionReusableView(frame: CGRect.zero)
     }
 }
