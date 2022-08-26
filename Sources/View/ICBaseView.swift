@@ -489,9 +489,9 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
 }
 
 
-// MARK: - Private
+// MARK: -
 extension ICBaseView {
-    private func getFirstDayOfWeek(setDate: Date, firstDayOfWeek: WeekDay?) -> Date {
+    public func getFirstDayOfWeek(setDate: Date, firstDayOfWeek: WeekDay?) -> Date {
         guard let firstDayOfWeek = firstDayOfWeek, settings.numOfDays == 7 else { return setDate.startOfDay }
         let setDayOfWeek = setDate.getDayOfWeek()
         var diff = setDayOfWeek.rawValue - firstDayOfWeek.rawValue

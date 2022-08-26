@@ -38,7 +38,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
     /// Hightlight
     private var hightlighted: ICView.HightlightIndex?
     
-    public init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
+    public override init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
         super.init(parentVC: parentVC, collectionView: collectionView, provider: provider)
         collectionView.dataSource = self
         currentSettings = provider.settings
