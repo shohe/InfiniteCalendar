@@ -33,7 +33,7 @@ open class ICView<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICS
     /// AutoScroll
     public var autoScrollTimer: Timer?
     public var currentAutoScrollDirection: ScrollDirection?
-    open var autoScrollSpeedRange: ClosedRange<CGFloat> { return (0.5...4.0) /* by 0.01 sec */ }
+    open var autoScrollSpeedRange = (0.5...4.0) // by 0.01 sec
     
     public weak var delegateForLongTap: ICViewDelegate<View,Cell,Settings>?
     
