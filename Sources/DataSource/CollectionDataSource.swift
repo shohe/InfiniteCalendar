@@ -6,11 +6,11 @@
 //
 
 import Foundation
-import UIKit
+import SwiftUI
 
 
 open class CollectionDataSource<Provider: CollectionDataProvider, Cell: UICollectionViewCell>:
-    NSObject, UICollectionViewDataSource where Cell: ViewHostableCell, Provider.T == Cell.View.VM {
+    NSObject/*, UICollectionViewDataSource*/ where Cell: ViewHostableCell, Provider.T == Cell.View.VM {
     
     public var provider: Provider
     public var parentVC: UIViewController
@@ -22,12 +22,12 @@ open class CollectionDataSource<Provider: CollectionDataProvider, Cell: UICollec
         self.provider = provider
         super.init()
         
-        collectionView.dataSource = self
+        //collectionView.dataSource = self
     }
     
     
     // MARK: - UICollectionViewDataSource
-    open func numberOfSections(in collectionView: UICollectionView) -> Int {
+    /*open func numberOfSections(in collectionView: UICollectionView) -> Int {
         return provider.numberOfSections()
     }
     
@@ -45,5 +45,5 @@ open class CollectionDataSource<Provider: CollectionDataProvider, Cell: UICollec
     
     open func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         return UICollectionReusableView(frame: CGRect.zero)
-    }
+    }*/
 }

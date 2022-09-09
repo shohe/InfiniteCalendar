@@ -5,7 +5,7 @@
 //  Created by Shohe Ohtani on 2022/05/28.
 //
 
-import UIKit
+import SwiftUI
 
 public protocol ICViewFlowLayoutDelegateProvider {
     associatedtype Settings: ICSettings

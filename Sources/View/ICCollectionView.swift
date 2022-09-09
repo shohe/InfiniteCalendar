@@ -5,7 +5,7 @@
 //  Created by Shohe Ohtani on 2022/03/23.
 //
 
-import UIKit
+import SwiftUI
 
 
 public class ICCollectionView: UICollectionView {

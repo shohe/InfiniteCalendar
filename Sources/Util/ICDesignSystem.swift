@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import UIKit
+import SwiftUI
 
 public class ICViewColors {
     static var dateHeaderWeekday: UIColor { return .darkGray }

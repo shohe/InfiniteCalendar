@@ -5,7 +5,6 @@
 //  Created by Shohe Ohtani on 2022/04/18.
 //
 
-import UIKit
 import SwiftUI
 
 public extension ICDefaultComponent {

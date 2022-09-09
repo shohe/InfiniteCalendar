@@ -5,7 +5,6 @@
 //  Created by Shohe Ohtani on 2022/04/11.
 //
 
-import UIKit
 import SwiftUI
 
 

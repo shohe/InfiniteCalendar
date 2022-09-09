@@ -19,7 +19,7 @@ extension ICDataSourceDelegate {
 }
 
 open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>:
-    CollectionDataSource<ICDataProvider<View, Cell, Settings>, Cell> {
+    CollectionDataSource<ICDataProvider<View, Cell, Settings>, Cell>, UICollectionViewDataSource {
     
     public var isAllHeaderExpended: Bool = false
     public var vibrateFeedback: UIImpactFeedbackGenerator?
@@ -41,6 +41,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
     public override init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
         super.init(parentVC: parentVC, collectionView: collectionView, provider: provider)
         currentSettings = provider.settings
+        collectionView.dataSource = self
     }
     
     open func updateSettings(_ settings: Settings) {
@@ -100,7 +101,7 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
     }
     
     // MARK: - UICollectionViewDataSource
-    open override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    open func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         var view = UICollectionReusableView()
         switch kind {
         case Settings.TimeHeader.className:
@@ -160,6 +161,22 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
         }
         
         return view
+    }
+    
+    open func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return provider.numberOfSections()
+    }
+    
+    open func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return provider.numberOfItems(in: section)
+    }
+    
+    open func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Cell.reuseIdentifier, for: indexPath) as? Cell, let item = provider.item(at: indexPath) else {
+            return UICollectionViewCell()
+        }
+        cell.configure(parentVC: parentVC, viewModel: item)
+        return cell
     }
     
     // Get item indexPath from tap position

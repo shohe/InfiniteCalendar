@@ -5,7 +5,7 @@
 //  Created by Shohe Ohtani on 2022/03/29.
 //
 
-import UIKit
+import SwiftUI
 
 public protocol ReusableCell: UICollectionReusableView {
     static var reuseIdentifier: String { get }
