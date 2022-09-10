@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		0936383F2841D9240076F650 /* CustomDateHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0936383E2841D9240076F650 /* CustomDateHeader.swift */; };
 		09363842284214280076F650 /* ICViewFlowLayoutDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09363840284213490076F650 /* ICViewFlowLayoutDelegate.swift */; };
-		099CB4E7283B809A00D96142 /* CollectionDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099CB4B3283B809A00D96142 /* CollectionDataSource.swift */; };
 		099CB4E8283B809A00D96142 /* ICDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099CB4B4283B809A00D96142 /* ICDataSource.swift */; };
 		099CB4E9283B809A00D96142 /* CollectionDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099CB4B5283B809A00D96142 /* CollectionDataProvider.swift */; };
 		099CB4EA283B809A00D96142 /* ICDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099CB4B6283B809A00D96142 /* ICDataProvider.swift */; };
@@ -83,7 +82,6 @@
 		09363840284213490076F650 /* ICViewFlowLayoutDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICViewFlowLayoutDelegate.swift; sourceTree = "<group>"; };
 		099CB49D283B806A00D96142 /* InfiniteCalendar.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = InfiniteCalendar.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		099CB4B0283B809A00D96142 /* Package.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
-		099CB4B3283B809A00D96142 /* CollectionDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionDataSource.swift; sourceTree = "<group>"; };
 		099CB4B4283B809A00D96142 /* ICDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ICDataSource.swift; sourceTree = "<group>"; };
 		099CB4B5283B809A00D96142 /* CollectionDataProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionDataProvider.swift; sourceTree = "<group>"; };
 		099CB4B6283B809A00D96142 /* ICDataProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ICDataProvider.swift; sourceTree = "<group>"; };
@@ -196,7 +194,6 @@
 		099CB4B2283B809A00D96142 /* DataSource */ = {
 			isa = PBXGroup;
 			children = (
-				099CB4B3283B809A00D96142 /* CollectionDataSource.swift */,
 				099CB4B4283B809A00D96142 /* ICDataSource.swift */,
 				099CB4B5283B809A00D96142 /* CollectionDataProvider.swift */,
 				099CB4B6283B809A00D96142 /* ICDataProvider.swift */,
@@ -470,7 +467,6 @@
 				099CB4E8283B809A00D96142 /* ICDataSource.swift in Sources */,
 				099CB4FB283B809A00D96142 /* ICViewDelegate.swift in Sources */,
 				099CB502283B809A00D96142 /* ICBaseView.swift in Sources */,
-				099CB4E7283B809A00D96142 /* CollectionDataSource.swift in Sources */,
 				099CB507283B809A00D96142 /* ICViewFlowLayout.swift in Sources */,
 				099CB4FD283B809A00D96142 /* CellableView.swift in Sources */,
 				099CB4FA283B809A00D96142 /* ViewHostingCell.swift in Sources */,

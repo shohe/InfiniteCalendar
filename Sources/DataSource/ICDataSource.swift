@@ -18,8 +18,11 @@ extension ICDataSourceDelegate {
     func didSelectAllDayItem(date: Date, at indexPath: IndexPath) {}
 }
 
-open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>:
-    CollectionDataSource<ICDataProvider<View, Cell, Settings>, Cell>, UICollectionViewDataSource {
+open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: NSObject, UICollectionViewDataSource where Cell: ViewHostableCell {
+    
+    public var provider: ICDataProvider<View, Cell, Settings>
+    public var parentVC: UIViewController
+    public var collectionView: UICollectionView
     
     public var isAllHeaderExpended: Bool = false
     public var vibrateFeedback: UIImpactFeedbackGenerator?
@@ -38,9 +41,13 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
     /// Hightlight
     private var hightlighted: ICView.HightlightIndex?
     
-    public override init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
-        super.init(parentVC: parentVC, collectionView: collectionView, provider: provider)
+    public init(parentVC: UIViewController, collectionView: UICollectionView, provider: ICDataProvider<View, Cell, Settings>) {
+        self.parentVC = parentVC
+        self.collectionView = collectionView
+        self.provider = provider
         currentSettings = provider.settings
+        super.init()
+        
         collectionView.dataSource = self
     }
     
