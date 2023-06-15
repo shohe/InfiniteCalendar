@@ -62,8 +62,9 @@ struct ContentView: View {
     private func calendarHeader(height: CGFloat) -> some View {
         let darkGray: Color = Color(red: 95.0/255.0, green: 98.0/255.0, blue: 103.0/255.0)
         var formatter: DateFormatter {
+            let isCurrentYear = currentDate.year == Date().year
             let df = DateFormatter()
-            df.dateFormat = "MMMM"
+            df.dateFormat = isCurrentYear ? "MMMM" : "MMM \(currentDate.year)"
             return df
         }
         

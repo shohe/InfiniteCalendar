@@ -36,6 +36,11 @@ public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, 
 
     public func updateUIViewController(_ icViewController: ICViewController<View, Cell, Settings>, context: Context) {
         icViewController.updateCalendar(events: events, settings: settings, targetDate: targetDate)
+        
+        // This line is important for keep currentDate state.
+        DispatchQueue.main.async {
+            targetDate = nil
+        }
     }
     
     

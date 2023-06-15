@@ -467,7 +467,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout<Settings>, startTimeForItemAtIndexPath indexPath: IndexPath) -> Date {
         let date = layout.date(forDateHeaderAt: indexPath)
         
-        if let events = events[date] {
+        if let events = events[date], events.count > indexPath.item {
             return events[indexPath.item].intraStartDate
         } else {
             print("Connot get events at \(date)")
@@ -478,7 +478,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     public func collectionView(_ collectionView: UICollectionView, layout: ICViewFlowLayout<Settings>, endTimeForItemAtIndexPath indexPath: IndexPath) -> Date {
         let date = layout.date(forDateHeaderAt: indexPath)
         
-        if let events = events[date] {
+        if let events = events[date], events.count > indexPath.item {
             return events[indexPath.item].intraEndDate
         } else {
             print("Connot get events at \(date)")
