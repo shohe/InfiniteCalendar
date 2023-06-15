@@ -11,7 +11,7 @@ import SwiftUI
 public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, Settings: ICSettings>: UIViewControllerRepresentable {
     @Binding var events: [View.VM]
     @ObservedObject var settings: Settings
-    @Binding var didTapToday: Bool
+    @Binding var targetDate: Date?
     
     // Option parameters for delegate
     private var onCurrentDateChanged: ((Date) -> Void)?
@@ -21,10 +21,10 @@ public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, 
     private var onEventCanceled: ((View.VM) -> Void)?
     
     
-    public init(events: Binding<[View.VM]>, settings: Settings, didTapToday: Binding<Bool>) {
+    public init(events: Binding<[View.VM]>, settings: Settings, targetDate: Binding<Date?>) {
         self._events = events
         self.settings = settings
-        self._didTapToday = didTapToday
+        self._targetDate = targetDate
     }
     
     public func makeUIViewController(context: Context) -> ICViewController<View, Cell, Settings> {
@@ -35,10 +35,7 @@ public struct InfiniteCalendar<View: CellableView, Cell: ViewHostingCell<View>, 
     }
 
     public func updateUIViewController(_ icViewController: ICViewController<View, Cell, Settings>, context: Context) {
-        icViewController.updateCalendar(events: events, settings: settings, didTapToday: didTapToday)
-        DispatchQueue.main.async {
-            if didTapToday { didTapToday = false }
-        }
+        icViewController.updateCalendar(events: events, settings: settings, targetDate: targetDate)
     }
     
     

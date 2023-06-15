@@ -44,7 +44,7 @@ open class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Set
         calendarView.delegateForLongTap = delegate
     }
     
-    public func updateCalendar(events: [View.VM], settings: Settings, didTapToday: Bool) {
+    public func updateCalendar(events: [View.VM], settings: Settings, targetDate: Date?) {
         guard !isUpdated else { return }
         isUpdated = true
         updateWorkItem?.cancel()
@@ -56,10 +56,10 @@ open class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Set
         calendarView.updateEvents(events)
         calendarView.updateSettings(settings)
         
-        if didTapToday {
+        if let targetDate {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.calendarView.resetCollectionViewOffset(by: settings.initDate.startOfDay, animated: true)
+                self.calendarView.resetCollectionViewOffset(by: targetDate.startOfDay, animated: true)
             }
         }
         

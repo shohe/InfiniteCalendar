@@ -21,7 +21,7 @@ struct DemoApp: App {
 struct ContentView: View {
     @State var events: [EventCellView.VM] = SampleData().events
     @State var currentDate: Date = Date()
-    @State var didTapToday: Bool = false
+    @State var targetDate: Date?
     @State var selectedItem: EventCellView.VM?
     
     @ObservedObject var settings: CustomSettings = CustomSettings(numOfDays: 1, setDate: Date())
@@ -31,7 +31,7 @@ struct ContentView: View {
         VStack(spacing: 0.0) {
             calendarHeader(height: 42.0)
             
-            InfiniteCalendar<EventCellView, EventCell, CustomSettings>(events: $events, settings: settings, didTapToday: $didTapToday)
+            InfiniteCalendar<EventCellView, EventCell, CustomSettings>(events: $events, settings: settings, targetDate: $targetDate)
                 .onCurrentDateChanged { date in
                     // Don't recommend update date of @Sate variable (if you defined) with date obtained.
                     // Because, if update @State variable, InfiniteCalendar will start re-rendaring then it will use CPU too much.
@@ -74,7 +74,7 @@ struct ContentView: View {
                 .padding(.leading, 12.0)
             
             Spacer()
-            Button(action: { didTapToday.toggle() }) {
+            Button(action: { targetDate = Date() }) {
                 Image(systemName: "calendar")
                     .font(.system(size: 22.0))
                     .foregroundColor(darkGray)
