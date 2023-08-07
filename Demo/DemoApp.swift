@@ -81,15 +81,12 @@ struct ContentView: View {
                     .foregroundColor(darkGray)
             }
             Menu {
-                Button(action: { settings.updateScrollType(numOfDays: 1) }, label: {
-                    Label("Day", image: "day")
-                })
-                Button(action: { settings.updateScrollType(numOfDays: 3) }, label: {
-                    Label("3 Day", image: "3day")
-                })
-                Button(action: { settings.updateScrollType(numOfDays: 7) }, label: {
-                    Label("Week", image: "week")
-                })
+                Menu("Page") {
+                    menuItem(for: .page, days: 1, title: "Day", image: "day")
+                    menuItem(for: .page, days: 3, title: "3 Day", image: "3day")
+                    menuItem(for: .page, days: 7, title: "Week", image: "week")
+                }
+                menuItem(for: .list, title: "List", image: "vertical.scroll")
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 22.0))
@@ -98,5 +95,19 @@ struct ContentView: View {
         }
         .padding(.horizontal, 11.0)
         .frame(height: height)
+    }
+    
+    @ViewBuilder
+    func menuItem(for type: DisplayType, days: Int? = nil, title: String, image: String) -> some View {
+        Button(action: {
+            if let numOfDays = days {
+                settings.updateDisplayType(type)
+                settings.updateScrollType(numOfDays: numOfDays)
+            } else {
+                settings.updateDisplayType(type)
+            }
+        }) {
+            Label(title, image: image)
+        }
     }
 }

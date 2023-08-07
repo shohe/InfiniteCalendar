@@ -162,14 +162,23 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         
         let eventCount: Int = isExpended ? maxEventCount : min(maxEventCount, 3)
         let varticalMargin: CGFloat = isHiddenTopDate ? layout.allDayContentsMargin.top + layout.allDayContentsMargin.bottom : 0
-        let newAllDayHeader = layout.defaultAllDayOneLineHeight * CGFloat(eventCount) + varticalMargin
+        
+        let newAllDayHeader = settings.displayType == .page ? layout.defaultAllDayOneLineHeight * CGFloat(eventCount) + varticalMargin : 0
         
         // Check whether it needs to update the allDayHeaderHeight
         if newAllDayHeader != layout.allDayHeaderHeight {
             layout.allDayHeaderHeight = newAllDayHeader
-            collectionView.contentInset.top = isHiddenTopDate ? max(layout.dateHeaderHeight, newAllDayHeader) : newAllDayHeader
-            collectionView.contentInset.bottom = layout.contentsMargin.bottom - newAllDayHeader
-            collectionView.verticalScrollIndicatorInsets.top = isHiddenTopDate ? max(layout.dateHeaderHeight, newAllDayHeader) : layout.dateHeaderHeight + newAllDayHeader
+            switch settings.displayType {
+            case .list:
+                collectionView.contentInset.top = layout.defaultListHeaderHeight
+                collectionView.contentInset.bottom = 0
+                collectionView.verticalScrollIndicatorInsets.top = layout.defaultListHeaderHeight > 0 ? layout.defaultListHeaderHeight : layout.defaultListHeaderHeight-1
+            case .page:
+                collectionView.contentInset.top = isHiddenTopDate ? max(layout.dateHeaderHeight, newAllDayHeader) : newAllDayHeader
+                collectionView.contentInset.bottom = layout.contentsMargin.bottom - newAllDayHeader
+                collectionView.verticalScrollIndicatorInsets.top = isHiddenTopDate ? max(layout.dateHeaderHeight, newAllDayHeader) : layout.dateHeaderHeight + newAllDayHeader
+            }
+            
             collectionView.reloadData()
         }
     }

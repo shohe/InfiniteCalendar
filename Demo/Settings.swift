@@ -15,6 +15,7 @@ class CustomSettings: ICSettings {
     @Published public var numOfDays: Int = 1
     @Published public var initDate: Date = Date()
     @Published public var scrollType: ScrollType = .pageScroll
+    @Published public var displayType: DisplayType = .page
     @Published public var moveTimeMinInterval: Int = 15
     @Published public var timeRange: (startTime: Int, endTime: Int) = (1, 23)
     @Published public var withVibrateFeedback: Bool = true
@@ -31,5 +32,10 @@ class CustomSettings: ICSettings {
     func updateScrollType(numOfDays: Int) {
         self.numOfDays = numOfDays
         scrollType = (numOfDays == 1 || numOfDays == 7) ? .pageScroll : .sectionScroll
+    }
+    
+    func updateDisplayType(_ type: DisplayType) {
+        self.displayType = type
+        numOfDays = 1
     }
 }

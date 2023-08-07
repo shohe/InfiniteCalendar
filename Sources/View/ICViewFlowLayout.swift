@@ -28,6 +28,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     open var defaultGridThickness: CGFloat { return 1.0 }
     open var defaultCurrentTimelineHeight: CGFloat { return 10.0 }
     open var defaultAllDayOneLineHeight: CGFloat { return ICViewUI.allDayItemHeight }
+    open var defaultListHeaderHeight: CGFloat { return ICViewUI.listHeiaderHeight }
     
     /// Margin for flowLayout in collectionView
     open var contentsMargin: UIEdgeInsets { return UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0) }
@@ -408,12 +409,12 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
             let isDisplayAttribute = !isHiddenTopDate || date(forSection: section) == date(forContentOffset: collectionView.contentOffset)
             let shouldAttributeHidden = isHiddenTopDate && !isDisplayAttribute
             
-            attributes.frame = CGRect(
+            attributes.frame = currentSettings.displayType == .page ? CGRect(
                 x: isHiddenTopDate ? shouldAttributeHidden ? -timeHeaderWidth : collectionView.contentOffset.x : sectionMinX,
                 y: dateHeaderMinY,
                 width: isHiddenTopDate ? timeHeaderWidth : sectionWidth,
                 height: dateHeaderHeight
-            )
+            ) : .zero
             attributes.zIndex = zIndexForElementKind(Settings.DateHeader.className)
             
             layoutVerticalGridLineAttributes(section: section, sectionX: sectionMinX, calendarGridMinY: collectionView.contentOffset.y, sectionHeight: collectionView.contentSize.height, attributes: &attributes)
@@ -511,14 +512,16 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     }
     
     open func layoutCornerHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
+        let headerHeight = currentSettings.displayType == .page ? isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : dateHeaderHeight + allDayHeaderHeight : 0
         (attributes, cornerHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: 0), ofKind: Settings.DateCorner.className, withItemCache: cornerHeaderAttributes)
-        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : dateHeaderHeight + allDayHeaderHeight))
+        attributes.frame = CGRect(origin: collectionView.contentOffset, size: CGSize(width: timeHeaderWidth, height: headerHeight))
         attributes.zIndex = zIndexForElementKind(Settings.DateCorner.className)
     }
     
     open func layoutAllDayHeaderAttributes(sectionIndexes: NSIndexSet, collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let calendarContentMinX = timeHeaderWidth + contentsMargin.left
         let headerMinY = collectionView.contentOffset.y + (isHiddenTopDate ? 0 : dateHeaderHeight)
+        let headerHeight = currentSettings.displayType == .page ? isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight : 0
         
         sectionIndexes.enumerate(_:) { (section, _) in
             let sectionMinX = calendarContentMinX + sectionWidth * CGFloat(section)
@@ -527,7 +530,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
                 x: sectionMinX,
                 y: headerMinY + (isHiddenTopDate ? allDayContentsMargin.top : 0),
                 width: sectionWidth,
-                height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
+                height: headerHeight
             )
             attributes.zIndex = zIndexForElementKind(Settings.AllDayHeader.className)
         }
@@ -538,7 +541,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
             x: collectionView.contentOffset.x,
             y: headerMinY,
             width: collectionViewContentSize.width,
-            height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
+            height: currentSettings.displayType == .page ? headerHeight : defaultListHeaderHeight
         )
         attributes.zIndex = zIndexForElementKind(Settings.AllDayHeaderBackground.className)
         
@@ -549,7 +552,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
             x: needsToExpendAllDayHeader ? collectionView.contentOffset.x : -timeHeaderWidth,
             y: headerMinY,
             width: timeHeaderWidth,
-            height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
+            height: headerHeight
         )
         attributes.zIndex = zIndexForElementKind(Settings.AllDayCorner.className)
     }
@@ -560,7 +563,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
             x: collectionView.contentOffset.x,
             y: headerMinY,
             width: timeHeaderWidth,
-            height: isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight
+            height: currentSettings.displayType == .page ? isHiddenTopDate ? max(dateHeaderHeight, allDayHeaderHeight) : allDayHeaderHeight : 0
         )
         attributes.zIndex = zIndexForElementKind(Settings.AllDayCorner.className)
     }
@@ -817,7 +820,7 @@ extension ICViewFlowLayout {
     // MARK: UI, Layout
     public func setupUIParams(hourHeight: CGFloat? = nil, timeHeaderWidth: CGFloat? = nil, dateHeaderHeight: CGFloat? = nil) {
         self.hourHeight = hourHeight ?? defaultHourHeight
-        self.dateHeaderHeight = dateHeaderHeight ?? defaultDateHeaderHeight
+        self.dateHeaderHeight = currentSettings.displayType == .page ? dateHeaderHeight ?? defaultDateHeaderHeight : 0
         self.timeHeaderWidth = timeHeaderWidth ?? defaultTimeHeaderWidth
     }
     

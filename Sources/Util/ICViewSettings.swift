@@ -34,6 +34,7 @@ public protocol ICSettings: ObservableObject {
     var numOfDays: Int { get set }
     var initDate: Date { get set }
     var scrollType: ScrollType { get set }
+    var displayType: DisplayType { get set }
     var moveTimeMinInterval: Int { get set }
     var timeRange: (startTime: Int, endTime: Int) { get set }
     var withVibrateFeedback: Bool { get set }
@@ -56,6 +57,7 @@ open class ICViewSettings: ICSettings {
     @Published public var numOfDays: Int = 1
     @Published public var initDate: Date = Date()
     @Published public var scrollType: ScrollType = .pageScroll
+    @Published public var displayType: DisplayType = .page
     @Published public var moveTimeMinInterval: Int = 15
     @Published public var timeRange: (startTime: Int, endTime: Int) = (1, 23)
     @Published public var withVibrateFeedback: Bool = true

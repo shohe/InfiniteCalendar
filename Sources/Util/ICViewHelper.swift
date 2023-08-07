@@ -88,6 +88,11 @@ public enum ScrollType {
     case sectionScroll
 }
 
+public enum DisplayType {
+    case page
+    case list
+}
+
 public enum WeekDay: Int {
     case Sunday = 1, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday
 }

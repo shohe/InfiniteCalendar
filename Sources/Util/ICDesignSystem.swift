@@ -20,6 +20,7 @@ public class ICViewColors {
 
 public class ICViewUI {
     public static var allDayItemHeight: CGFloat { return 28.0 }
+    public static var listHeiaderHeight: CGFloat { return 12.0 }
     
     public enum DatePosition {
         case top, left
