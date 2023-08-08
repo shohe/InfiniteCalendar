@@ -417,20 +417,22 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         let velocity = collectionView.panGestureRecognizer.velocity(in: collectionView)
         
         // When velocity is .zero, return same value as current scrollDirection
-        if velocity == .zero {
-            return scrollDirection
-        } else if abs(velocity.x) >= abs(velocity.y) {
-            var offsetY: CGFloat = collectionView.contentOffset.y
-            if maxVerticalScrollRange.lowerBound > offsetY {
-                offsetY = maxVerticalScrollRange.lowerBound
-            } else if maxVerticalScrollRange.upperBound < offsetY {
-                offsetY = maxVerticalScrollRange.upperBound
+        if settings.displayType == .page {
+            if velocity == .zero {
+                return scrollDirection
+            } else if abs(velocity.x) >= abs(velocity.y) {
+                var offsetY: CGFloat = collectionView.contentOffset.y
+                if maxVerticalScrollRange.lowerBound > offsetY {
+                    offsetY = maxVerticalScrollRange.lowerBound
+                } else if maxVerticalScrollRange.upperBound < offsetY {
+                    offsetY = maxVerticalScrollRange.upperBound
+                }
+                return ScrollDirection(direction: .horizontal, lockedAt: offsetY)
             }
-            return ScrollDirection(direction: .horizontal, lockedAt: offsetY)
-        } else {
-            let offsetX: CGFloat = getNearestDestinationOffset(collectionView).0.x
-            return ScrollDirection(direction: .vertical, lockedAt: offsetX)
         }
+        
+        let offsetX: CGFloat = getNearestDestinationOffset(collectionView).0.x
+        return ScrollDirection(direction: .vertical, lockedAt: offsetX)
     }
     
     public func getScrollableRange() -> ClosedRange<CGFloat> {

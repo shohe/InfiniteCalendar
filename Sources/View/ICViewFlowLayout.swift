@@ -402,23 +402,27 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         let calendarGridMinY = contentsMargin.top + (isHiddenTopDate ? 0 : dateHeaderHeight)
         let dateHeaderMinY = isStickeyDateHeader ? collectionView.contentOffset.y : fmax(collectionView.contentOffset.y, 0.0)
         
-        sectionIndexes.enumerate(_:) { (section, _) in
-            let sectionMinX = calendarMinX + sectionWidth * CGFloat(section)
-            (attributes, dateHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.DateHeader.className, withItemCache: dateHeaderAttributes)
-            
-            let isDisplayAttribute = !isHiddenTopDate || date(forSection: section) == date(forContentOffset: collectionView.contentOffset)
-            let shouldAttributeHidden = isHiddenTopDate && !isDisplayAttribute
-            
-            attributes.frame = currentSettings.displayType == .page ? CGRect(
-                x: isHiddenTopDate ? shouldAttributeHidden ? -timeHeaderWidth : collectionView.contentOffset.x : sectionMinX,
-                y: dateHeaderMinY,
-                width: isHiddenTopDate ? timeHeaderWidth : sectionWidth,
-                height: dateHeaderHeight
-            ) : .zero
-            attributes.zIndex = zIndexForElementKind(Settings.DateHeader.className)
-            
-            layoutVerticalGridLineAttributes(section: section, sectionX: sectionMinX, calendarGridMinY: collectionView.contentOffset.y, sectionHeight: collectionView.contentSize.height, attributes: &attributes)
-            layoutItemsAttributes(section: section, sectionX: sectionMinX, calendarStartY: calendarGridMinY)
+        switch currentSettings.displayType {
+        case .list:
+            layoutAllItemsAttributes()
+        case .page:
+            sectionIndexes.enumerate(_:) { (section, _) in
+                let sectionMinX = calendarMinX + sectionWidth * CGFloat(section)
+                (attributes, dateHeaderAttributes) = layoutAttributesForSupplementaryView(at: IndexPath(item: 0, section: section), ofKind: Settings.DateHeader.className, withItemCache: dateHeaderAttributes)
+                
+                let isDisplayAttribute = !isHiddenTopDate || date(forSection: section) == date(forContentOffset: collectionView.contentOffset)
+                let shouldAttributeHidden = isHiddenTopDate && !isDisplayAttribute
+                
+                attributes.frame = currentSettings.displayType == .page ? CGRect(
+                    x: isHiddenTopDate ? shouldAttributeHidden ? -timeHeaderWidth : collectionView.contentOffset.x : sectionMinX,
+                    y: dateHeaderMinY,
+                    width: isHiddenTopDate ? timeHeaderWidth : sectionWidth,
+                    height: dateHeaderHeight
+                ) : .zero
+                attributes.zIndex = zIndexForElementKind(Settings.DateHeader.className)
+                layoutVerticalGridLineAttributes(section: section, sectionX: sectionMinX, calendarGridMinY: collectionView.contentOffset.y, sectionHeight: collectionView.contentSize.height, attributes: &attributes)
+                layoutItemsAttributes(section: section, sectionX: sectionMinX, calendarStartY: calendarGridMinY)
+            }
         }
         
         // background
@@ -435,6 +439,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         }
     }
     
+    // Each section items for page display
     open func layoutItemsAttributes(section: Int, sectionX: CGFloat, calendarStartY: CGFloat) {
         var attributes = UICollectionViewLayoutAttributes()
         var sectionItemAttributes = [UICollectionViewLayoutAttributes]()
@@ -467,6 +472,11 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         }
         
         adjustItemsForOverlap(sectionItemAttributes, inSection: section, sectionMinX: sectionX, currentSectionZ: zIndexForElementKind(ICViewKinds.Supplementary.eventCell))
+    }
+    
+    // All items for list display
+    open func layoutAllItemsAttributes() {
+        // TODO: -
     }
     
     /**
