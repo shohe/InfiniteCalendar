@@ -67,14 +67,25 @@ public struct PagingDirection {
     public let direction: Direction   // final page direction
     public let scrollingTo: Direction // scrolling direction (previous or next)
     
-    public init(_ collectionView: UICollectionView) {
-        let minOffsetX: CGFloat = 0, maxOffsetX = collectionView.contentSize.width - collectionView.frame.width
-        let currentOffsetX = collectionView.contentOffset.x
-        var direction: Direction = .stay
-        if currentOffsetX >= maxOffsetX { direction = .next }
-        if currentOffsetX <= minOffsetX { direction = .previous }
-        self.direction = direction
-        self.scrollingTo = (currentOffsetX == 0.0) ? .stay : (currentOffsetX > maxOffsetX / 2) ? .next : .previous
+    public init(_ collectionView: UICollectionView, type: DisplayType) {
+        switch type {
+        case .page:
+            let minOffsetX: CGFloat = 0, maxOffsetX = collectionView.contentSize.width - collectionView.frame.width
+            let currentOffsetX = collectionView.contentOffset.x
+            var direction: Direction = .stay
+            if currentOffsetX >= maxOffsetX { direction = .next }
+            if currentOffsetX <= minOffsetX { direction = .previous }
+            self.direction = direction
+            self.scrollingTo = (currentOffsetX == 0.0) ? .stay : (currentOffsetX > maxOffsetX / 2) ? .next : .previous
+        case .list:
+            let minOffsetY: CGFloat = 0, maxOffsetY = collectionView.contentSize.height - collectionView.frame.height
+            let currentOffsetY = collectionView.contentOffset.y
+            var direction: Direction = .stay
+            if currentOffsetY >= maxOffsetY { direction = .next }
+            if currentOffsetY <= minOffsetY { direction = .previous }
+            self.direction = direction
+            self.scrollingTo = (currentOffsetY == 0.0) ? .stay : (currentOffsetY > maxOffsetY / 2) ? .next : .previous
+        }
     }
 }
 

@@ -23,6 +23,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     open var settings: Settings = Settings() {
         didSet {
             layout.updateSettings(settings)
+            layout.updatePreparePages(preparePages)
             dataSource?.updateSettings(settings)
         }
     }
@@ -55,22 +56,24 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         return frame.width - layout.timeHeaderWidth - layout.contentsMargin.left - layout.contentsMargin.right
     }
     
+    public var contentViewHeight: CGFloat {
+        return frame.height - layout.dateHeaderHeight
+    }
     
     // Params for Scroll ---
     public var scrollDirection: ScrollDirection?
     
-    var contentOffsetRange: ClosedRange<CGFloat> {
+    /// Use for section pagination
+    public typealias Velocity = CGPoint
+    public typealias DestinationOffset = (CGPoint, Velocity)
+    public var destinationOffset: DestinationOffset?
+    private var maxHorizontalScrollRange:  ClosedRange<CGFloat> {
         let maxContentOffsetY: CGFloat =
             collectionView.contentSize.height -
             collectionView.bounds.height +
             collectionView.contentInset.bottom
         return (0...maxContentOffsetY)
     }
-    
-    /// Use for section pagination
-    public typealias Velocity = CGPoint
-    public typealias DestinationOffset = (CGPoint, Velocity)
-    public var destinationOffset: DestinationOffset?
     private var maxVerticalScrollRange: ClosedRange<CGFloat> {
         let isExpendedAllDayHeader: Bool = layout.allDayHeaderHeight > layout.allDayContentsMargin.top + layout.allDayContentsMargin.bottom
         let lower: CGFloat = isExpendedAllDayHeader ? -layout.allDayHeaderHeight : -layout.dateHeaderHeight
@@ -105,6 +108,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         super.layoutSubviews()
         layout.sectionWidth = getSectionWidth()
         layout.invalidateLayoutCache()
+        resetScrollIndicator()
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -133,9 +137,8 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         collectionView.delegate = self
         collectionView.isDirectionalLockEnabled = false
         collectionView.bounces = true
-        collectionView.showsVerticalScrollIndicator = true
-        collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .white
+        resetScrollIndicator()
         addSubview(collectionView)
         collectionView.setAnchorConstraintsFullSizeTo(view: self)
         
@@ -190,6 +193,11 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         }
     }
     
+    open func resetScrollIndicator() {
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.showsVerticalScrollIndicator = (settings.displayType == .page)
+    }
+    
     open func pagePaginationEffect(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         var destination: DestinationOffset = getNearestDestinationOffset(scrollView, velocity: velocity, destinationOffset: targetContentOffset.pointee)
         
@@ -199,9 +207,9 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         }
         
         // if scrolling direction with velocity is already out of range, reset paging offset.
-        let scrollableRange: ClosedRange<CGFloat> = getScrollableRange()
+        let scrollableRange: ClosedRange<CGFloat> = getScrollableRange(settings.displayType)
         if !scrollableRange.contains(destination.0.x) {
-            let offset: CGPoint = getPointeeResetedPagingOffset(scrollView, withVelocity: velocity)
+            let offset: CGPoint = getPointeeResetedPagingOffset(scrollView, for: settings.displayType, withVelocity: velocity)
             destination.0 = offset
         }
         targetContentOffset.pointee = destination.0
@@ -211,9 +219,20 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         var destination: DestinationOffset = getNearestDestinationOffset(scrollView, velocity: velocity, destinationOffset: targetContentOffset.pointee)
         
         // if scrolling direction with velocity is already out of range, reset paging offset.
-        let scrollableRange: ClosedRange<CGFloat> = getScrollableRange()
-        if !scrollableRange.contains(destination.0.x) {
-            let offset: CGPoint = getPointeeResetedPagingOffset(scrollView, withVelocity: velocity)
+        if !getScrollableRange(settings.displayType).contains(destination.0.x) {
+            let offset: CGPoint = getPointeeResetedPagingOffset(scrollView, for: settings.displayType, withVelocity: velocity)
+            destination.0 = offset
+        }
+        
+        destinationOffset = destination
+        targetContentOffset.pointee = destination.0
+    }
+    
+    open func listPaginationEffect(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        var destination: DestinationOffset = (targetContentOffset.pointee, velocity)
+        
+        if !getScrollableRange(settings.displayType).contains(destination.0.y) {
+            let offset: CGPoint = getPointeeResetedPagingOffset(scrollView, for: settings.displayType, withVelocity: velocity)
             destination.0 = offset
         }
         
@@ -226,6 +245,8 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         destinationOffset = nil
         
         allDayHeaderWorkItem?.cancel()
+        
+        guard settings.displayType == .page else { return }
         allDayHeaderWorkItem = DispatchWorkItem {
             self.updateAllDayBar(isScrolling: false, isExpended: self.dataSource?.isAllHeaderExpended ?? false)
         }
@@ -240,9 +261,9 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
                     strongSelf.endOfScroll()
                 }
             } else {
-                let paging = PagingDirection(self.collectionView)
+                let paging = PagingDirection(self.collectionView, type: self.settings.displayType)
                 let velocity = (paging.scrollingTo == .stay) ? .zero : CGPoint(x: paging.scrollingTo == .next ? 1 : -1, y: 0)
-                self.getPointeeResetedPagingOffset(self.collectionView, withVelocity: velocity)
+                self.getPointeeResetedPagingOffset(self.collectionView, for: self.settings.displayType, withVelocity: velocity)
                 self.endOfScroll()
             }
         }
@@ -348,6 +369,8 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         switch scrollDirection.direction {
         case .vertical:
             if let lockedAt = scrollDirection.lockedAt { scrollView.contentOffset.x = lockedAt }
+            guard settings.displayType == .list, abs(velocity.x) > 0 else { return }
+            listPaginationEffect(scrollView, withVelocity: velocity, targetContentOffset: targetContentOffset)
         case .horizontal:
             if let lockedAt = scrollDirection.lockedAt { scrollView.contentOffset.y = lockedAt }
             guard abs(velocity.x) > 0 else { return }
@@ -389,18 +412,26 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
             if let lockedAt = scrollDirection?.lockedAt { scrollView.contentOffset.y = lockedAt }
         default: break
         }
+        
+        switch settings.displayType {
+        case .page:
+            // When scrolling over than range of visible view, update initDate
+            if !getScrollableRange(settings.displayType).contains(scrollView.contentOffset.x) {
+                forceReload()
+            }
 
-        // When scrolling over than range of visible view, update initDate
-        if !getScrollableRange().contains(scrollView.contentOffset.x) {
-            forceReload()
+            // When layout.sectionWidth is nil, ignore updateAllDayBar
+            guard layout.sectionWidth != nil else { return }
+
+            // TODO: checkScrollableRange()
+            updateAllDayBar(isScrolling: true, isExpended: dataSource?.isAllHeaderExpended ?? false)
+            resetCurrentDate()
+        case .list:
+            // When scrolling over than range of visible view, update initDate
+            if !getScrollableRange(settings.displayType).contains(scrollView.contentOffset.y) {
+                forceReload()
+            }
         }
-
-        // When layout.sectionWidth is nil, ignore updateAllDayBar
-        guard layout.sectionWidth != nil else { return }
-
-        // TODO: checkScrollableRange()
-        updateAllDayBar(isScrolling: true, isExpended: dataSource?.isAllHeaderExpended ?? false)
-        resetCurrentDate()
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -435,10 +466,17 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         return ScrollDirection(direction: .vertical, lockedAt: offsetX)
     }
     
-    public func getScrollableRange() -> ClosedRange<CGFloat> {
-        let rightUpdateOffsetX = (contentViewWidth * CGFloat(preparePages-1)) - (contentViewWidth / 2)
-        let leftUpdateOffsetX = contentViewWidth / 2
-        return leftUpdateOffsetX...rightUpdateOffsetX
+    public func getScrollableRange(_ type: DisplayType) -> ClosedRange<CGFloat> {
+        switch type {
+        case .page:
+            let rightUpdateOffsetX = (contentViewWidth * CGFloat(preparePages-1)) - (contentViewWidth / 2)
+            let leftUpdateOffsetX = contentViewWidth / 2
+            return leftUpdateOffsetX...rightUpdateOffsetX
+        case .list:
+            let bottomUpdateOffsetY = collectionView.contentSize.height - collectionView.frame.height - (contentViewHeight / 2)
+            let topUpdateOffsetY = contentViewHeight / 2
+            return (topUpdateOffsetY < bottomUpdateOffsetY) ? topUpdateOffsetY...bottomUpdateOffsetY : topUpdateOffsetY...topUpdateOffsetY+1
+        }
     }
     
     open func resetInitialDate(_ pagingDirection: PagingDirection.Direction) {
@@ -592,21 +630,34 @@ extension ICBaseView {
      * Get paging offset after reset current scrollView offset to middle page.
      */
     @discardableResult
-    private func getPointeeResetedPagingOffset(_ scrollView: UIScrollView, withVelocity velocity: CGPoint) -> CGPoint {
-        let middlePage: Int = Int(preparePages/2)
-        let middlePageOffsetX: CGFloat = self.contentViewWidth*CGFloat(middlePage)
-        
-        if abs(velocity.x) > 0 {
-            if velocity.x > 0 {
-                scrollView.contentOffset.x -= self.contentViewWidth*CGFloat(middlePage)
-                self.resetInitialDate(.next)
-            } else {
-                scrollView.contentOffset.x += self.contentViewWidth*CGFloat(middlePage)
-                self.resetInitialDate(.previous)
+    private func getPointeeResetedPagingOffset(_ scrollView: UIScrollView, for type: DisplayType, withVelocity velocity: CGPoint) -> CGPoint {
+        switch type {
+        case .page:
+            let middlePage: Int = Int(preparePages/2)
+            let middlePageOffsetX: CGFloat = self.contentViewWidth*CGFloat(middlePage)
+            if abs(velocity.x) > 0 {
+                if velocity.x > 0 {
+                    scrollView.contentOffset.x -= self.contentViewWidth*CGFloat(middlePage)
+                    self.resetInitialDate(.next)
+                } else {
+                    scrollView.contentOffset.x += self.contentViewWidth*CGFloat(middlePage)
+                    self.resetInitialDate(.previous)
+                }
             }
+            return CGPoint(x: middlePageOffsetX, y: scrollView.contentOffset.y)
+        case .list:
+            let middlePageOffsetY: CGFloat = scrollView.contentSize.height/2
+            let adjustDistanceWithVelocity = self.contentViewHeight*abs(velocity.y*1.5)
+            scrollView.contentOffset.y = middlePageOffsetY
+            if abs(velocity.y) > 0 {
+                if velocity.y > 0 {
+                    scrollView.contentOffset.y -= adjustDistanceWithVelocity
+                } else {
+                    scrollView.contentOffset.y += adjustDistanceWithVelocity
+                }
+            }
+            return CGPoint(x: scrollView.contentOffset.x, y: middlePageOffsetY)
         }
-        
-        return CGPoint(x: middlePageOffsetX, y: scrollView.contentOffset.y)
     }
     
     /// Notice: A temporary solution to fix the scroll from bottom issue when isScrolling

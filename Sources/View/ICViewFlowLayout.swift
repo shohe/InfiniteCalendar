@@ -109,6 +109,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     public var delegate: ICViewFlowLayoutDelegate<Settings>!
     public var currentInitDate: Date! // This `currentInitDate` is should be leftest date for current collectionView
     public var currentSettings: Settings!
+    public var currentPreparePages: Int!
     private var minuteTimer: Timer?
     
     
@@ -130,7 +131,15 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     }
     
     open override var collectionViewContentSize: CGSize {
-        return CGSize(width: timeHeaderWidth + sectionWidth * CGFloat(collectionView!.numberOfSections), height: maxSectionHeight)
+        switch currentSettings.displayType {
+        case .page:
+            return CGSize(width: timeHeaderWidth + sectionWidth * CGFloat(collectionView!.numberOfSections),
+                          height: maxSectionHeight)
+        case .list:
+            let height = max(collectionView?.frame.height ?? 0 - dateHeaderHeight, maxSectionHeight)
+            return CGSize(width: timeHeaderWidth + sectionWidth * CGFloat(collectionView!.numberOfSections),
+                          height: height * CGFloat(currentPreparePages))
+        }
     }
     
     open override func prepare(forCollectionViewUpdates updateItems: [UICollectionViewUpdateItem]) {
@@ -247,6 +256,10 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     public func updateInitDate(_ initDate: Date) {
         currentInitDate = initDate
+    }
+    
+    public func updatePreparePages(_ pages: Int) {
+        currentPreparePages = pages
     }
     
     open func invalidateLayoutCache() {
@@ -413,12 +426,12 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
                 let isDisplayAttribute = !isHiddenTopDate || date(forSection: section) == date(forContentOffset: collectionView.contentOffset)
                 let shouldAttributeHidden = isHiddenTopDate && !isDisplayAttribute
                 
-                attributes.frame = currentSettings.displayType == .page ? CGRect(
+                attributes.frame = CGRect(
                     x: isHiddenTopDate ? shouldAttributeHidden ? -timeHeaderWidth : collectionView.contentOffset.x : sectionMinX,
                     y: dateHeaderMinY,
                     width: isHiddenTopDate ? timeHeaderWidth : sectionWidth,
                     height: dateHeaderHeight
-                ) : .zero
+                )
                 attributes.zIndex = zIndexForElementKind(Settings.DateHeader.className)
                 layoutVerticalGridLineAttributes(section: section, sectionX: sectionMinX, calendarGridMinY: collectionView.contentOffset.y, sectionHeight: collectionView.contentSize.height, attributes: &attributes)
                 layoutItemsAttributes(section: section, sectionX: sectionMinX, calendarStartY: calendarGridMinY)
@@ -789,7 +802,12 @@ extension ICViewFlowLayout {
         
         let maxOffsetY = scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom
         let offsetY = timelineOffsetY - scrollView.center.y
-        return CGPoint(x: scrollView.contentOffset.x, y: min(max(offsetY, -allDayHeaderHeight), maxOffsetY))
+        
+        switch currentSettings.displayType {
+            // TODO: - current position for .list (currently using test value)
+        case .list: return CGPoint(x: scrollView.contentOffset.x, y: scrollView.contentSize.height/2)
+        case .page: return CGPoint(x: scrollView.contentOffset.x, y: min(max(offsetY, -allDayHeaderHeight), maxOffsetY))
+        }
     }
     
     public func offset(forHorizontalBounce scrollView: UIScrollView) -> CGPoint {
@@ -966,8 +984,14 @@ extension ICViewFlowLayout {
     public func layoutHorizontalGridLineAttributes(collectionView: UICollectionView, calendarStartX: CGFloat, calendarStartY: CGFloat, attributes: inout UICollectionViewLayoutAttributes) {
         var horizontalGridlineIndex = 0
         let gridWidth = collectionViewContentSize.width - timeHeaderWidth - contentsMargin.left - contentsMargin.right
+        let gridRange = {
+            switch $0 {
+            case .page: return (0...24)
+            case .list: return (0...Int(collectionViewContentSize.height / hourHeight))
+            }
+        }(currentSettings.displayType)
         
-        for hour in 0...24 {
+        for hour in gridRange {
             (attributes, horizontalGridlineAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: horizontalGridlineIndex, section: 0), ofKind: ICViewKinds.Decoration.horizontalGridline, withItemCache: horizontalGridlineAttributes)
             let gridlineXOffset = calendarStartX
             let gridlineMinX = fmax(gridlineXOffset, collectionView.contentOffset.x + gridlineXOffset)
