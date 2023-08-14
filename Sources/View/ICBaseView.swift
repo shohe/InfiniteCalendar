@@ -195,7 +195,8 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     
     open func resetScrollIndicator() {
         collectionView.showsHorizontalScrollIndicator = false
-        collectionView.showsVerticalScrollIndicator = (settings.displayType == .page)
+        // TODO: - test
+        collectionView.showsVerticalScrollIndicator = true //(settings.displayType == .page)
     }
     
     open func pagePaginationEffect(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
@@ -369,8 +370,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
         switch scrollDirection.direction {
         case .vertical:
             if let lockedAt = scrollDirection.lockedAt { scrollView.contentOffset.x = lockedAt }
-            guard settings.displayType == .list, abs(velocity.x) > 0 else { return }
-            listPaginationEffect(scrollView, withVelocity: velocity, targetContentOffset: targetContentOffset)
+            
         case .horizontal:
             if let lockedAt = scrollDirection.lockedAt { scrollView.contentOffset.y = lockedAt }
             guard abs(velocity.x) > 0 else { return }

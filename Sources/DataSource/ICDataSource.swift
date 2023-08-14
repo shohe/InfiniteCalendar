@@ -121,7 +121,12 @@ open class ICDataSource<View: CellableView, Cell: ViewHostingCell<View>, Setting
             }
         case Settings.DateHeader.className:
             if let dateHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: kind, for: indexPath) as? Settings.DateHeader {
-                let date = provider.layout.date(forTimeHeaderAt: indexPath)
+                let date = {
+                    switch $0 {
+                    case .page: return provider.layout.date(forTimeHeaderAt: indexPath)
+                    case .list: return provider.layout.date(forLeftSideDateHeaderAt: indexPath)
+                    }
+                }(currentSettings.displayType)
                 let item = ICDateHeaderItem(date: date)
                 dateHeader.configure(parentVC: parentVC, item: item)
                 view = dateHeader

@@ -138,7 +138,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         case .list:
             let height = max(collectionView?.frame.height ?? 0 - dateHeaderHeight, maxSectionHeight)
             return CGSize(width: timeHeaderWidth + sectionWidth * CGFloat(collectionView!.numberOfSections),
-                          height: height * CGFloat(currentPreparePages))
+                          height: height * CGFloat(currentPreparePages/2)) // preparePages is too much, so use only half page instead.
         }
     }
     
@@ -342,6 +342,17 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
         return CGRect(x: headerMinX, y: hourY + minuteY, width: timeHeaderWidth, height: timeHeaderHeight)
     }
     
+    // DateHeader on leftside for list type display.
+    open func rect(_ collectionView: UICollectionView, forDateHeaderAt date: Date) -> CGRect {
+        let headerMinX = fmax(collectionView.contentOffset.x, 0)
+        let baseY = collectionViewContentSize.height/2 + hourHeight
+        
+        let dateDiff = Date.daysBetween(start: Date().startOfDay, end: date.startOfDay, ignoreHours: true) - 1
+        let hourY = baseY + CGFloat(dateDiff)*hourHeight
+        
+        return CGRect(x: headerMinX, y: hourY, width: timeHeaderWidth, height: hourHeight)
+    }
+    
     /// Rect for move cell.
     open func rect<T:ICEventable>(forMoveCell originalRect: CGRect, vm: T?,
                                   collectionPointAt cPoint: CGPoint,
@@ -502,10 +513,18 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     open func layoutTimeHeaderAttributes(collectionView: UICollectionView, attributes: inout UICollectionViewLayoutAttributes) {
         let indexPaths: [IndexPath] = indexPathsForTimeHeader()
         indexPaths.forEach { indexPath in
-            (attributes, timeHeaderAttributes) = layoutAttributesForSupplementaryView(at: indexPath, ofKind: Settings.TimeHeader.className, withItemCache: timeHeaderAttributes)
-            let date = date(forTimeHeaderAt: indexPath)
-            attributes.frame = rect(collectionView, forTimeHeaderAt: date, isLast: (indexPaths.last == indexPath))
-            attributes.zIndex = zIndexForElementKind(Settings.TimeHeader.className)
+            switch currentSettings.displayType {
+            case .page:
+                (attributes, timeHeaderAttributes) = layoutAttributesForSupplementaryView(at: indexPath, ofKind: Settings.TimeHeader.className, withItemCache: timeHeaderAttributes)
+                let date = date(forTimeHeaderAt: indexPath)
+                attributes.frame = rect(collectionView, forTimeHeaderAt: date, isLast: (indexPaths.last == indexPath))
+                attributes.zIndex = zIndexForElementKind(Settings.TimeHeader.className)
+            case .list:
+                (attributes, dateHeaderAttributes) = layoutAttributesForSupplementaryView(at: indexPath, ofKind: Settings.DateHeader.className, withItemCache: dateHeaderAttributes)
+                let date = date(forLeftSideDateHeaderAt: indexPath)
+                attributes.frame = rect(collectionView, forDateHeaderAt: date)
+                attributes.zIndex = zIndexForElementKind(Settings.TimeHeader.className)
+            }
         }
         
         // background
@@ -711,6 +730,12 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     open func date(forDateHeaderAt indexPath: IndexPath) -> Date {
         let day = delegate.collectionView(collectionView!, layout: self, dayForSection: indexPath.section)
         return day.startOfDay
+    }
+    
+    open func date(forLeftSideDateHeaderAt indexPath: IndexPath) -> Date {
+        let range = timelineGridRange()
+        let todayIndex = Int(range.upperBound / 2)
+        return Date().startOfDay.add(component: .day, value: indexPath.row - todayIndex)
     }
     
     open func daysForSection(_ section: Int) -> DateComponents {
@@ -975,6 +1000,13 @@ extension ICViewFlowLayout {
         attributes.zIndex = zIndexForElementKind(ICViewKinds.Decoration.verticalGridline)
     }
     
+    public func timelineGridRange() -> ClosedRange<Int> {
+        switch currentSettings.displayType {
+        case .page: return (0...24)
+        case .list: return (0...Int(collectionViewContentSize.height / hourHeight))
+        }
+    }
+    
     /**
      Setup method for HorizontalGridLine
      
@@ -984,14 +1016,8 @@ extension ICViewFlowLayout {
     public func layoutHorizontalGridLineAttributes(collectionView: UICollectionView, calendarStartX: CGFloat, calendarStartY: CGFloat, attributes: inout UICollectionViewLayoutAttributes) {
         var horizontalGridlineIndex = 0
         let gridWidth = collectionViewContentSize.width - timeHeaderWidth - contentsMargin.left - contentsMargin.right
-        let gridRange = {
-            switch $0 {
-            case .page: return (0...24)
-            case .list: return (0...Int(collectionViewContentSize.height / hourHeight))
-            }
-        }(currentSettings.displayType)
         
-        for hour in gridRange {
+        for hour in timelineGridRange() {
             (attributes, horizontalGridlineAttributes) = layoutAttributesForDecorationView(at: IndexPath(item: horizontalGridlineIndex, section: 0), ofKind: ICViewKinds.Decoration.horizontalGridline, withItemCache: horizontalGridlineAttributes)
             let gridlineXOffset = calendarStartX
             let gridlineMinX = fmax(gridlineXOffset, collectionView.contentOffset.x + gridlineXOffset)
@@ -1036,11 +1062,20 @@ extension ICViewFlowLayout {
         var indexPaths = [IndexPath]()
         var item: Int = 0
         
-        for hour in 0...24 {
-            let memories = hour != displayTimeRange.endTime ? (60/moveTimeInterval) : 1
-            for _ in 0..<memories {
-                indexPaths.append(IndexPath(item: item, section: 0))
-                item += 1
+        switch currentSettings.displayType {
+        case .page:
+            for hour in timelineGridRange() {
+                let memories = hour != displayTimeRange.endTime ? (60/moveTimeInterval) : 1
+                for _ in 0..<memories {
+                    indexPaths.append(IndexPath(item: item, section: 0))
+                    item += 1
+                }
+            }
+        case .list:
+            for hour in timelineGridRange() {
+                if indexPaths.count < timelineGridRange().upperBound {
+                    indexPaths.append(IndexPath(item: hour, section: 0))
+                }
             }
         }
         
