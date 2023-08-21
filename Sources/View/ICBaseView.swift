@@ -405,16 +405,16 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
     open func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollDirection == nil { scrollDirection = getBegginDraggingScrollDirection() }
         
-        switch scrollDirection?.direction {
-        case .vertical:
-            if let lockedAt = scrollDirection?.lockedAt { scrollView.contentOffset.x = lockedAt }
-        case .horizontal:
-            if let lockedAt = scrollDirection?.lockedAt { scrollView.contentOffset.y = lockedAt }
-        default: break
-        }
-        
         switch settings.displayType {
         case .page:
+            switch scrollDirection?.direction {
+            case .vertical:
+                if let lockedAt = scrollDirection?.lockedAt { scrollView.contentOffset.x = lockedAt }
+            case .horizontal:
+                if let lockedAt = scrollDirection?.lockedAt { scrollView.contentOffset.y = lockedAt }
+            default: break
+            }
+            
             // When scrolling over than range of visible view, update initDate
             if !getScrollableRange(settings.displayType).contains(scrollView.contentOffset.x) {
                 forceReload()
