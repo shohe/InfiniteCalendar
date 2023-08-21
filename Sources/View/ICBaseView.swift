@@ -427,6 +427,7 @@ open class ICBaseView<View: CellableView, Cell: ViewHostingCell<View>, Settings:
             updateAllDayBar(isScrolling: true, isExpended: dataSource?.isAllHeaderExpended ?? false)
             resetCurrentDate()
         case .list:
+            if let lockedAt = scrollDirection?.lockedAt { scrollView.contentOffset.x = lockedAt }
             // When scrolling over than range of visible view, update initDate
             if !getScrollableRange(settings.displayType).contains(scrollView.contentOffset.y) {
                 forceReload()
