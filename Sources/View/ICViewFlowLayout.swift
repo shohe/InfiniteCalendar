@@ -252,6 +252,7 @@ open class ICViewFlowLayout<Settings: ICSettings>: UICollectionViewFlowLayout {
     
     public func updateSettings(_ settings: Settings) {
         currentSettings = settings
+        setupUIParams()
     }
     
     public func updateInitDate(_ initDate: Date) {
@@ -829,9 +830,11 @@ extension ICViewFlowLayout {
         let offsetY = timelineOffsetY - scrollView.center.y
         
         switch currentSettings.displayType {
-            // TODO: - current position for .list (currently using test value)
-        case .list: return CGPoint(x: scrollView.contentOffset.x, y: scrollView.contentSize.height/2)
-        case .page: return CGPoint(x: scrollView.contentOffset.x, y: min(max(offsetY, -allDayHeaderHeight), maxOffsetY))
+        case .list:
+            let topMargin = 12.0
+            return CGPoint(x: scrollView.contentOffset.x, y: scrollView.contentSize.height/2 - (defaultListHeaderHeight + topMargin))
+        case .page:
+            return CGPoint(x: scrollView.contentOffset.x, y: min(max(offsetY, -allDayHeaderHeight), maxOffsetY))
         }
     }
     
