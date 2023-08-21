@@ -29,13 +29,12 @@ open class ICViewController<View: CellableView, Cell: ViewHostingCell<View>, Set
         currentNumOfDays = settings.numOfDays
         self.view = calendarView
         
-        // set offset by currentTimeline
-        DispatchQueue.main.async { [weak self] in
+        // set initialize offset by currentTimeline with animate
+        DispatchQueue.main.asyncAfter(deadline: .now()+0.5) { [weak self] in
             guard let self = self else { return }
-            self.calendarView.collectionView.contentOffset = self.calendarView.layout.offset(forCurrentTimeline: self.calendarView.collectionView)
-            if self.calendarView.collectionView.contentOffset.y > 0 {
-                self.calendarView.collectionView.contentOffset.y += self.calendarView.layout.allDayHeaderHeight
-            }
+            var initOffset = self.calendarView.layout.offset(forCurrentTimeline: self.calendarView.collectionView)
+            initOffset.y += initOffset.y > 0 ? self.calendarView.layout.allDayHeaderHeight : 0
+            self.calendarView.collectionView.setContentOffset(initOffset, animated: true)
         }
     }
     
